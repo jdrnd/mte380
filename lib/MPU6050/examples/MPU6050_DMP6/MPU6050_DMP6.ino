@@ -93,7 +93,7 @@ MPU6050 mpu;
 // http://en.wikipedia.org/wiki/Gimbal_lock)
 //#define OUTPUT_READABLE_EULER
 
-// uncomment "O`UTPUT_READABLE_YAWPITCHROLL" if you want to see the yaw/
+// uncomment "OUTPUT_READABLE_YAWPITCHROLL" if you want to see the yaw/
 // pitch/roll angles (in degrees) calculated from the quaternions coming
 // from the FIFO. Note this also requires gravity vector calculations.
 // Also note that yaw/pitch/roll angles suffer from gimbal lock (for
@@ -105,13 +105,13 @@ MPU6050 mpu;
 // not compensated for orientation, so +X is always +X according to the
 // sensor, just without the effects of gravity. If you want acceleration
 // compensated for orientation, us OUTPUT_READABLE_WORLDACCEL instead.
-#define OUTPUT_READABLE_REALACCEL
+//#define OUTPUT_READABLE_REALACCEL
 
 // uncomment "OUTPUT_READABLE_WORLDACCEL" if you want to see acceleration
 // components with gravity removed and adjusted for the world frame of
 // reference (yaw is relative to initial orientation, since no magnetometer
 // is present in this case). Could be quite handy in some cases.
-#define OUTPUT_READABLE_WORLDACCEL
+//#define OUTPUT_READABLE_WORLDACCEL
 
 // uncomment "OUTPUT_TEAPOT" if you want output that matches the
 // format used for the InvenSense teapot demo
@@ -172,7 +172,7 @@ void setup() {
     // initialize serial communication
     // (115200 chosen because it is required for Teapot Demo output, but it's
     // really up to you depending on your project)
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial); // wait for Leonardo enumeration, others continue immediately
 
     // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
