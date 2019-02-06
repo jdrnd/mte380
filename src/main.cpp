@@ -3,9 +3,13 @@
 #include <Wire.h>
 
 #include "actuators/motors.h"
+
+#include "sensors/photosensor.h"
 #include "sensors/imu.h"
 
 Motors motors;
+
+Photosensor candleSensor;
 
 void setup() {
     Serial.begin(115200);
