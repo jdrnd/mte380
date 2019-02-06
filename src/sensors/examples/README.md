@@ -1,0 +1,1 @@
+For each sensor, place a basic sketch (.ino) file that can be used to run the sensor (ie. log values).
