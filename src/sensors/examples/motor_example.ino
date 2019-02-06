@@ -1,13 +1,11 @@
-#ifdef teensy
-
 #include <Arduino.h>
-
 #include <Wire.h>
 
 #include "actuators/motors.h"
 
 Motors motors;
 
+// Wire single motor and set pins in motors.h
 void setup() {
     Serial.begin(115200);
 
@@ -22,4 +20,3 @@ void loop() {
     motors.left->stop();
     delay(2000);
 }
-
