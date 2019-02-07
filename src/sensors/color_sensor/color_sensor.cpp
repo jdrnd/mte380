@@ -1,97 +1,97 @@
-//This is the class wrapper for the TCS3200 color sensor
+//This is the class wrapper for the COLOR_SENSOR color sensor
 
-#include "TCS3200.h"
+#include "color_sensor.h"
 
 //CONSTRUCTORS_____________________________________________________________________________________________
-TCS3200::TCS3200()
+COLOR_SENSOR::COLOR_SENSOR()
 {
-   freq_gain = 3;
-   delay_time = 100;
+   _freq_gain = FREQ_GAIN_LOW;    //LOWEST SETTING BY DEFAULT
+   _delay_time = 100;             //in ms
 }
 
 //constructor with configurations outside of default
 //@param freq_gain - 1 MAX freq (500->600kHz), 2 - MED freq (100->120kHz), 3 - LOW freq (10->12kHz)
-TCS3200::TCS3200(uint8_t _freq_gain, uint16_t _delay_time)
+COLOR_SENSOR::COLOR_SENSOR(freqGain freq_gain_, uint16_t delay_time_)
 {
-    freq_gain = _freq_gain;
-    delay_time = _delay_time;
+    _freq_gain = freq_gain;
+    _delay_time = delay_time;
 }
 
 //PUBLIC_________________________________________________________________________________________________________
 
-void TCS3200::initialize()
+void COLOR_SENSOR::initialize()
 {
      // Setting the outputs
-    pinMode(S0, OUTPUT);
-    pinMode(S1, OUTPUT);
-    pinMode(S2, OUTPUT);
-    pinMode(S3, OUTPUT);
+    pinMode(COLOR_SENSOR_PIN0, OUTPUT);
+    pinMode(COLOR_SENSOR_PIN1, OUTPUT);
+    pinMode(COLOR_SENSOR_PIN2, OUTPUT);
+    pinMode(COLOR_SENSOR_PIN3, OUTPUT);
     
-    // Setting the sensorOut as an input
-    pinMode(sensorOut, INPUT);
+    // Setting the COLOR_SENSOR_OUT as an input
+    pinMode(COLOR_SENSOR_OUT, INPUT);
     
     // Setting frequency scaling to 20% by default
-    digitalWrite(S0,LOW);
-    digitalWrite(S1,HIGH);
+    digitalWrite(COLOR_SENSOR_PIN0,LOW);
+    digitalWrite(COLOR_SENSOR_PIN1,HIGH);
 
-     // Set the frquency scaling for the sensor
+     // Set the frequency scaling for the sensor
     if(freq_gain == 1)
     {
-        digitalWrite(S0,HIGH);
-        digitalWrite(S1,HIGH);
+        digitalWrite(COLOR_SENSOR_PIN0,HIGH);
+        digitalWrite(COLOR_SENSOR_PIN1,HIGH);
     }
     else if(freq_gain == 2)
     {
-        digitalWrite(S0,HIGH);
-        digitalWrite(S1,LOW);
+        digitalWrite(COLOR_SENSOR_PIN0,HIGH);
+        digitalWrite(COLOR_SENSOR_PIN1,LOW);
     }
     else if(freq_gain == 3)
     {
-        digitalWrite(S0,LOW);
-        digitalWrite(S1,HIGH);
+        digitalWrite(COLOR_SENSOR_PIN0,LOW);
+        digitalWrite(COLOR_SENSOR_PIN1,HIGH);
     }
 }
 
 // returns the raw sensor data for the red filter
-uint16_t TCS3200::read_red()
+uint16_t COLOR_SENSOR::read_red()
 {
 // Setting RED (R) filtered photodiodes to be read
-  digitalWrite(S2,LOW);
-  digitalWrite(S3,LOW);
+  digitalWrite(COLOR_SENSOR_PIN2,LOW);
+  digitalWrite(COLOR_SENSOR_PIN3,LOW);
   // Delay to prevent the sensor from being read too often
-  delay(delay_time);
+  delay(_delay_time);
   // Reading the output frequency
   // unsure how accurate this function is....
-  return pulseIn(sensorOut, LOW);
+  return pulseIn(COLOR_SENSOR_OUT, LOW);
 }
 
 // returns the raw sensor data for the green filter
-uint16_t TCS3200::read_green()
+uint16_t COLOR_SENSOR::read_green()
 {
 // Setting GREEN (G) filtered photodiodes to be read
-  digitalWrite(S2,HIGH);
-  digitalWrite(S3,HIGH);
+  digitalWrite(COLOR_SENSOR_PIN2,HIGH);
+  digitalWrite(COLOR_SENSOR_PIN3,HIGH);
   // Delay to prevent the sensor from being read too often
-  delay(delay_time);
+  delay(_delay_time);
   // Reading the output frequency
-  return pulseIn(sensorOut, LOW);
+  return pulseIn(COLOR_SENSOR_OUT, LOW);
 }
 
 // returns the raw sensor data for the blue filter
-uint16_t TCS3200::read_blue()
+uint16_t COLOR_SENSOR::read_blue()
 {
 // Setting BLUE (B) filtered photodiodes to be read
-  digitalWrite(S2,LOW);
-  digitalWrite(S3,HIGH);
+  digitalWrite(COLOR_SENSOR_PIN2,LOW);
+  digitalWrite(COLOR_SENSOR_PIN3,HIGH);
   // Delay to prevent the sensor from being read too often
-  delay(delay_time);
+  delay(_delay_time);
   // Reading the output frequency
-  return pulseIn(sensorOut, LOW);
+  return pulseIn(COLOR_SENSOR_OUT, LOW);
 
 }
 
 // returns the current terrain based on the sensor data, and the experimental averages and STDEVs
-uint8_t TCS3200::curr_terrain()
+uint8_t COLOR_SENSOR::curr_terrain()
 {
     uint16_t r = read_red();
     uint16_t b = read_blue();
@@ -119,6 +119,4 @@ uint8_t TCS3200::curr_terrain()
 
 }
 
-
-
-//PRIVATE
+//PRIVATE__________________________________________________________________________________________
