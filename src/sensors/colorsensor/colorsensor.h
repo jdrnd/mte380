@@ -26,9 +26,9 @@
 // Define the experimental constants for the color sensor
 // 02/06/19 Currently the devations are not being explicitly used due to not
 // having the robot as a test rig, and the potential inconsistency with the data
-#define COLOR_GRAV_R                    950 //1119
+#define COLOR_GRAV_R                    1119
 #define COLOR_GRAV_RDEV                 137
-#define COLOR_GRAV_G                    1500 //1744
+#define COLOR_GRAV_G                    1744
 #define COLOR_GRAV_GDEV                 185
 #define COLOR_GRAV_B                    1805
 #define COLOR_GRAV_BDEV                 157 
