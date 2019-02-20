@@ -1,0 +1,143 @@
+//This is the class wrapper for the color sensor
+
+#include "colorsensor.h"
+#include <Arduino.h>
+
+//CONSTRUCTORS_____________________________________________________________________________________________
+ColorSensor::ColorSensor()
+{
+   _freq_gain = FREQ_GAIN_LOW;    //LOWEST SETTING BY DEFAULT
+   _delay_time = 100;             //in ms
+}
+
+//constructor with configurations outside of default
+//@param freq_gain - 1 MAX freq (500->600kHz), 2 - MED freq (100->120kHz), 3 - LOW freq (10->12kHz)
+ColorSensor::ColorSensor(freqGainLevel freq_gain, uint16_t delay_time)
+{
+    _freq_gain = freq_gain;
+    _delay_time = delay_time;
+}
+
+//PUBLIC_________________________________________________________________________________________________________
+
+void ColorSensor::initialize()
+{
+     // Setting the outputs
+    pinMode(COLOR_SENSOR_PIN0, OUTPUT);
+    pinMode(COLOR_SENSOR_PIN1, OUTPUT);
+    pinMode(COLOR_SENSOR_PIN2, OUTPUT);
+    pinMode(COLOR_SENSOR_PIN3, OUTPUT);
+    
+    // Setting the COLOR_SENSOR_OUT as an input
+    pinMode(COLOR_SENSOR_OUT, INPUT);
+    
+    // Setting frequency scaling to 20% by default
+    digitalWrite(COLOR_SENSOR_PIN0, LOW);
+    digitalWrite(COLOR_SENSOR_PIN1, HIGH);
+
+     // Set the frequency scaling for the sensor
+    if(_freq_gain == 1)
+    {
+        digitalWrite(COLOR_SENSOR_PIN0, HIGH);
+        digitalWrite(COLOR_SENSOR_PIN1, HIGH);
+    }
+    else if(_freq_gain == 2)
+    {
+        digitalWrite(COLOR_SENSOR_PIN0, HIGH);
+        digitalWrite(COLOR_SENSOR_PIN1, LOW);
+    }
+    else if(_freq_gain == 3)
+    {
+        digitalWrite(COLOR_SENSOR_PIN0, LOW);
+        digitalWrite(COLOR_SENSOR_PIN1, HIGH);
+    }
+}
+
+// returns the raw sensor data for the red filter
+uint16_t ColorSensor::read_red()
+{
+// Setting RED (R) filtered photodiodes to be read
+  digitalWrite(COLOR_SENSOR_PIN2, LOW);
+  digitalWrite(COLOR_SENSOR_PIN3, LOW);
+  // Delay to prevent the sensor from being read too often
+  delay(_delay_time);
+  // Reading the output frequency
+  // unsure how accurate this function is....
+  return pulseIn(COLOR_SENSOR_OUT, LOW);
+}
+
+// returns the raw sensor data for the green filter
+uint16_t ColorSensor::read_green()
+{
+// Setting GREEN (G) filtered photodiodes to be read
+  digitalWrite(COLOR_SENSOR_PIN2, HIGH);
+  digitalWrite(COLOR_SENSOR_PIN3, HIGH);
+  // Delay to prevent the sensor from being read too often
+  delay(_delay_time);
+  // Reading the output frequency
+  return pulseIn(COLOR_SENSOR_OUT, LOW);
+}
+
+// returns the raw sensor data for the blue filter
+uint16_t ColorSensor::read_blue()
+{
+// Setting BLUE (B) filtered photodiodes to be read
+  digitalWrite(COLOR_SENSOR_PIN2, LOW);
+  digitalWrite(COLOR_SENSOR_PIN3, HIGH);
+  // Delay to prevent the sensor from being read too often
+  delay(_delay_time);
+  // Reading the output frequency
+  return pulseIn(COLOR_SENSOR_OUT, LOW);
+
+}
+
+// returns the current terrain based on the sensor data, and the experimental averages and STDEVs
+// 0 -> grav, 1 -> water, 2 -> wood, 3-> sand
+uint8_t ColorSensor::curr_terrain(bool debug)
+{
+    uint16_t r = read_red();
+    uint16_t b = read_blue();
+    uint16_t g = read_green(); 
+    uint8_t min_index = 0;
+
+    int32_t error[4] = {};
+    
+    for(int i = 0; i < 4; i++)
+    {
+        //calculate the Mag^2 of the 3D vector error of the RGB value
+        error[i] = (r - AVG_R[i])*(r - AVG_R[i]) + (g - AVG_G[i])*(g - AVG_G[i]) + (b - AVG_B[i])*(b - AVG_B[i]);
+        if(error[min_index] >= error[i])
+        {
+        min_index = i;
+        }
+    }
+    if(debug)
+    {
+        Serial.print(r);
+        Serial.print("    ");
+        Serial.print(g);
+        Serial.print("    ");
+        Serial.print(b);
+        Serial.println();
+        
+        // the print order is gravel, water, wood, sand
+        for( int j = 0; j<4; j++)
+        {
+            Serial.print(error[j]);
+            Serial.print("   ");
+        }
+        Serial.println();
+    }
+
+    if(error[min_index] < dev[min_index])
+    {
+        return min_index;
+    }
+    else
+    {
+        return 5;
+    }
+
+}
+
+//PRIVATE__________________________________________________________________________________________
