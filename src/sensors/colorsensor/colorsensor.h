@@ -63,22 +63,19 @@ enum freqGainLevel : uint8_t
 
 class ColorSensor{
     public:
-        ColorSensor();
-
-        ColorSensor(freqGainLevel freq_gain, uint16_t delay_time);
+        ColorSensor(freqGainLevel freq_gain = FREQ_GAIN_LOW, uint16_t delay_time = 100);
 
         void initialize();
 
         uint16_t read_red();
         uint16_t read_green();
         uint16_t read_blue();
+
         // Returns a value 0-4 based on the terrain type, 5 if undefined
-        uint8_t curr_terrain(bool debug);
-
+        uint8_t curr_terrain(bool debug = false);
     private:
-
-        freqGainLevel _freq_gain;
-        uint16_t _delay_time;
+        freqGainLevel freq_gain_;
+        uint16_t delay_time_;
 
         const int32_t AVG_R[4] = {COLOR_GRAV_R, COLOR_WAT_R, COLOR_WOOD_R, COLOR_SAND_R};
         const int32_t AVG_G[4] = {COLOR_GRAV_G, COLOR_WAT_G, COLOR_WOOD_G, COLOR_SAND_G};
@@ -87,5 +84,4 @@ class ColorSensor{
         // will need more data to tune
         const int32_t dev[4] = {150000, 150000, 150000, 300000};
         
-
 };
