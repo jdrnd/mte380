@@ -1,0 +1,17 @@
+1k
+Your offsets:   -2819   1095    915     3       77      -11
+
+500
+Sensor readings with offsets:   5       -7      16384   2       0       0
+Your offsets:   -2817   1055    912     3       77      -11
+
+1k
+Sensor readings with offsets:   0       4       16381   -1      0       0
+Your offsets:   -2869   1086    912     2       77      -11
+
+  accelgyro.setXAccelOffset(0);
+  accelgyro.setYAccelOffset(0);
+  accelgyro.setZAccelOffset(0);
+  accelgyro.setXGyroOffset(0);
+  accelgyro.setYGyroOffset(0);
+  accelgyro.setZGyroOffset(0);
