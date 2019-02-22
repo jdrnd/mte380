@@ -5,44 +5,40 @@
 #include "rangefinders.h"
 
 // Initializes the rangefinder and sets the timeout. Must be called before `run`
-bool Rangefinder::init() {
+template <typename SensorType>
+bool Rangefinder<SensorType>::init() {
+    last_reading_ = 0;
     isRunning = false;
     sensor.setTimeout(500);
-    return sensor.init();
+    sensor.init();
+    return (sensor.last_status == 0);
 }
 
 // Enables continious reading on the sensor side so we can always read the most up-to-date value
-void Rangefinder::run() {
+template <typename SensorType>
+void Rangefinder<SensorType>::run() {
     sensor.startContinuous(50);
     isRunning = true;
 }
 
 // Alias to the sensor API's `setAddress`
-void Rangefinder::setAddress(uint8_t address) {
+template <typename SensorType>
+void Rangefinder<SensorType>::setAddress(uint8_t address) {
     sensor.setAddress(address);
 }
 
-// Returns the sensor's last reading
-uint16_t Rangefinder::read() {
-    sensor.read();
-    return sensor.ranging_data.range_mm;
+// Returns the sensor's filtered reading in mm
+// Using a simple exponential filter
+template <typename SensorType>
+uint16_t Rangefinder<SensorType>::read() {
+    last_reading_ = RANGERFINDER_FILTER_ALPHA*sensor.readRangeContinuousMillimeters() + (1-RANGERFINDER_FILTER_ALPHA)*last_reading_;
+    return last_reading_;
 }
 
 // Prints out the sensor's last reading (mm) to console
-void Rangefinder::logLastData() {
-    //Serial.println(sensor.getAddress());
-    sensor.read();
-    
-    Serial.print(sensor.ranging_data.range_mm);
-
-    /*
-    Serial.print("\tstatus: ");
-    Serial.print(VL53L1X::rangeStatusToString(sensor.ranging_data.range_status));
-    Serial.print("\tpeak signal: ");
-    Serial.print(sensor.ranging_data.peak_signal_count_rate_MCPS);
-    Serial.print("\tambient: ");
-    Serial.print(sensor.ranging_data.ambient_count_rate_MCPS);
-    */
+template <typename SensorType>
+void Rangefinder<SensorType>::logLastData() {
+    Serial.print(sensor.read());
 }
 
 // Initializes each range finder by placing them in standby (XSHUT LOW), then 
@@ -54,12 +50,14 @@ void Rangefinders::init() {
     pinMode(BACK_LIDAR_PIN, OUTPUT);
     pinMode(LEFT_LIDAR_PIN, OUTPUT);
     pinMode(RIGHT_LIDAR_PIN, OUTPUT);
+    pinMode(CLOSE_LIDAR_PIN, OUTPUT);
 
     // Place all LIDARS in standby
     digitalWrite(FRONT_LIDAR_PIN, LOW);
     digitalWrite(BACK_LIDAR_PIN, LOW);
     digitalWrite(LEFT_LIDAR_PIN, LOW);
     digitalWrite(RIGHT_LIDAR_PIN, LOW);
+    digitalWrite(CLOSE_LIDAR_PIN, LOW);
 
     digitalWrite(FRONT_LIDAR_PIN, HIGH);
     if (!front.init())
@@ -92,6 +90,17 @@ void Rangefinders::init() {
         while (1);
     }
     right.setAddress(RIGHT_LIDAR_ADDRESS);
+
+    // The close sensor's GPIO pin is NOT 5V tollerant so we set the pin to float instead of 
+    // setting it to high
+    pinMode(CLOSE_LIDAR_PIN, INPUT);           // set pin to input
+    digitalWrite(CLOSE_LIDAR_PIN, HIGH);       // turn on pullup resistors
+    if (!close.init())
+    {
+        Serial.println("Failed to detect and initialize close sensor!");
+        while (1);
+    }
+    close.setAddress(CLOSE_LIDAR_ADDRESS);
 }
 
 // Runs all LIDARS
@@ -100,6 +109,7 @@ void Rangefinders::run() {
     back.run();
     left.run();
     right.run();
+    close.run();
 }
 
 // Logs readings from all LIDARS to console, comma seperated
@@ -111,5 +121,7 @@ void Rangefinders::logReadings() {
     Serial.print(left.read());
     Serial.print(',');
     Serial.print(right.read());
+    Serial.print(',');
+    Serial.print(close.read());
     Serial.print('\n');
 }

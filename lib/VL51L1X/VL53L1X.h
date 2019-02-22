@@ -1264,7 +1264,7 @@ class VL53L1X
       float peak_signal_count_rate_MCPS;
       float ambient_count_rate_MCPS;
     };
-
+  
     RangingData ranging_data;
 
     uint8_t last_status; // status of last I2C transmission
