@@ -1,9 +1,18 @@
 #include "imu.h"
 
-
+// The "static" IMU object that our ISR will access
 IMU* IMU_Wrapper::primary = new IMU;
 
+// Sets up and initializes the IMU
 bool IMU::init() {
+    // Add initial measurement to IMU buffers for filtering
+    measurements_x_.push(0);
+    measurements_y_.push(0);
+    measurements_z_.push(0);
+    yaw_.push(0);
+    pitch_.push(0);
+    roll_.push(0);
+
     mpu_ = MPU6050();
 
     // load and configure the DMP
@@ -26,13 +35,6 @@ bool IMU::init() {
         Serial.println(F("Enabling DMP..."));
         mpu_.setDMPEnabled(true);
         
-
-        // enable Arduino interrupt detection
-        attachInterrupt(digitalPinToInterrupt(IMU_INTERRUPT_PIN), IMU_Wrapper::onPrimaryInterrupt, RISING);
-        
-        delay(3000);
-
-        Serial.println("noerror");
         // set our DMP Ready flag so the main loop() function knows it's okay to use it
         Serial.println(F("DMP ready! Waiting for first interrupt..."));
         
@@ -50,11 +52,19 @@ bool IMU::init() {
     return true;
 }
 
+void IMU::run() {
+    // Start responding to the IMU's interrupts
+    attachInterrupt(digitalPinToInterrupt(IMU_INTERRUPT_PIN), IMU_Wrapper::onPrimaryInterrupt, RISING);
+}
+
+
+// Wrapper so we can access the IMU class instance via a "static" function
 void IMU_Wrapper::onPrimaryInterrupt() {
     //Serial.println("interrupted");
     imu->onInterupt();
 }
 
+// ISR that is run every time the IMU has a new reading
 void IMU::onInterupt() {
     // This is a bit sketchy, but what we do here is within our ISR we 
     // re-enable interrupts so that reading from the I2C bus will work
@@ -79,87 +89,63 @@ void IMU::onInterupt() {
         while (fifoCount < imu_packetsize_) fifoCount = mpu_.getFIFOCount();
 
         // read a packet from FIFO
-        mpu_.getFIFOBytes(imu_buffer_, imu_packetsize_);
+        uint8_t imu_buffer[64];
+        mpu_.getFIFOBytes(imu_buffer, imu_packetsize_);
         
         // track FIFO count here in case there is > 1 packet available
         // (this lets us immediately read more without waiting for an interrupt)
         fifoCount -= imu_packetsize_;
-
-        #ifdef OUTPUT_READABLE_QUATERNION
-            // display quaternion values in easy matrix form: w x y z
-            mpu_.dmpGetQuaternion(&q, imu_buffer_);
-            Serial.print("quat\t");
-            Serial.print(q.w);
-            Serial.print("\t");
-            Serial.print(q.x);
-            Serial.print("\t");
-            Serial.print(q.y);
-            Serial.print("\t");
-            Serial.println(q.z);
-        #endif
-
-        #ifdef OUTPUT_READABLE_EULER
-            // display Euler angles in degrees
-            mpu_.dmpGetQuaternion(&q, imu_buffer_);
-            mpu_.dmpGetEuler(euler, &q);
-            Serial.print("euler\t");
-            Serial.print(euler[0] * 180/M_PI);
-            Serial.print("\t");
-            Serial.print(euler[1] * 180/M_PI);
-            Serial.print("\t");
-            Serial.println(euler[2] * 180/M_PI);
-        #endif
-
-        #ifdef OUTPUT_READABLE_YAWPITCHROLL
-            // display Euler angles in degrees
-            mpu_.dmpGetQuaternion(&q, imu_buffer_);
-            mpu_.dmpGetGravity(&gravity, &q);
-            mpu_.dmpGetYawPitchRoll(ypr, &q, &gravity);
-            Serial.print("ypr\t");
-            Serial.print(ypr[0] * 180/M_PI);
-            Serial.print("\t");
-            Serial.print(ypr[1] * 180/M_PI);
-            Serial.print("\t");
-            Serial.println(ypr[2] * 180/M_PI);
-        #endif
-
-        #ifdef OUTPUT_RAW_GYRO
-            uint32_t data[3];
-            mpu_.dmpGetGyro(data, imu_buffer_);
-            Serial.print(data[0]);
-            Serial.print(",");
-            Serial.print(data[1]);
-            Serial.print(",");
-            Serial.println(data[2]);
-        #endif
-
-        #ifdef OUTPUT_READABLE_REALACCEL
-            // display real acceleration, adjusted to remove gravity
-            mpu_.dmpGetQuaternion(&q, imu_buffer_);
-            mpu_.dmpGetAccel(&aa, imu_buffer_);
-            mpu_.dmpGetGravity(&gravity, &q);
-            mpu_.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-            Serial.print(aaReal.x);
-            Serial.print(",");
-            Serial.print(aaReal.y);
-            Serial.print(",");
-            Serial.println(aaReal.z);
-        #endif
         noInterrupts();
 
-        #ifdef OUTPUT_READABLE_WORLDACCEL
-            // display initial world-frame acceleration, adjusted to remove gravity
-            // and rotated based on known orientation from quaternion
-            mpu_.dmpGetQuaternion(&q_, imu_buffer_);
-            mpu_.dmpGetAccel(&aa_, imu_buffer_);
-            mpu_.dmpGetGravity(&gravity_, &q_);
-            mpu_.dmpGetLinearAccel(&aaReal_, &aa_, &gravity_);
-            mpu_.dmpGetLinearAccelInWorld(&aaWorld_, &aaReal_, &q_);
-            Serial.print(aaWorld_.x);
+        Quaternion q;   // [w, x, y, z]         quaternion container
+        VectorInt16 aa;         // [x, y, z]            accel sensor measurements
+        VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
+        VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
+        VectorFloat gravity;    // [x, y, z]            gravity vector
+        float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector 
+
+        // display initial world-frame acceleration, adjusted to remove gravity
+        // and rotated based on known orientation from quaternion
+        mpu_.dmpGetQuaternion(&q, imu_buffer);
+        mpu_.dmpGetAccel(&aa, imu_buffer);
+        mpu_.dmpGetGravity(&gravity, &q);
+        mpu_.dmpGetYawPitchRoll(ypr, &q, &gravity);
+        mpu_.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+        mpu_.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+
+        measurements_x_.push(IMU_FILTER_ALPHA * aaWorld.x + (1-IMU_FILTER_ALPHA)*measurements_x_.last());
+        measurements_y_.push(IMU_FILTER_ALPHA * aaWorld.y + (1-IMU_FILTER_ALPHA)*measurements_y_.last());
+        measurements_z_.push(IMU_FILTER_ALPHA * aaWorld.z + (1-IMU_FILTER_ALPHA)*measurements_z_.last());
+
+        yaw_.push(IMU_FILTER_ALPHA*(ypr[0] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*yaw_.last());
+        pitch_.push(IMU_FILTER_ALPHA*(ypr[1] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*pitch_.last());
+        roll_.push(IMU_FILTER_ALPHA*(ypr[2] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*roll_.last());
+
+        #ifdef DEBUG_YPR
+            Serial.print(yaw_.last());
             Serial.print(",");
-            Serial.print(aaWorld_.y);
+            Serial.print(pitch_.last());
             Serial.print(",");
-            Serial.println(aaWorld_.z);
+            Serial.println(roll_.last());
         #endif
+
     }
+}
+
+// Returns x,y,z acceleration as a struct
+Accel IMU::getAccel() {
+    return Accel{
+        ((double)measurements_x_.last() / 16384) * 9.81,
+        ((double)measurements_y_.last() / 16384) * 9.81,
+        ((double)measurements_z_.last() / 16384) * 9.81
+    };
+}
+
+// Return Yaw, Pitch, Roll of sensor
+Orientation IMU::getYPR() {
+    return Orientation{
+        yaw_.last(),
+        pitch_.last(),
+        roll_.last()
+    };
 }
