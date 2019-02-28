@@ -17,11 +17,12 @@ void Motors::rightMotorInterrupt() {
 
 // Initializes motor with pins and sets up interrupts
 // Must be ran before motor.setSpeed() can be used
-void Motor::init(uint8_t pwm_pin, uint8_t enable_pin, uint8_t sensor1_pin, uint8_t sensor2_pin) {
+void Motor::init(uint8_t pwm_pin, uint8_t enable_pin, uint8_t sensor1_pin, uint8_t sensor2_pin, int8_t in_direction) {
     pwm_pin_ = pwm_pin;
     enable_pin_ = enable_pin;
     sensor1_pin_ = sensor1_pin;
     sensor2_pin_ = sensor2_pin;
+    orientation_=in_direction;
 
     pinMode(sensor2_pin, INPUT);
     if (sensor1_pin == LEFT_MOTOR_SENSOR_A_PIN) {
@@ -38,11 +39,18 @@ void Motor::init(uint8_t pwm_pin, uint8_t enable_pin, uint8_t sensor1_pin, uint8
 // Accepts value from -100 to +100 corresponding to speed
 // Should not be used with a value of 0, stop() should be called instead
 void Motor::setSpeed(int8_t speedval) {
-    speedval = map(speedval, -100,100, 0, 255);
     Serial.print(speedval);
+    Serial.print(",");
+    speedval = map(speedval, -100,100, 0, 255);
+    Serial.println((uint8_t)speedval);
+
+    Serial.println(orientation_);
+    if (orientation_==REVERSE) {
+        speedval = 255 - speedval;
+    }
+
     digitalWrite(enable_pin_, HIGH);
     analogWrite(pwm_pin_, speedval);
-
 }
 
 // Stops motor immediatly 
@@ -68,7 +76,7 @@ void Motor::update() {
 
     // 90 measurements, so 4 degrees per measurement however we only interupt on one rising edge (8 degrees/measurement)
     speed = 8/(delta*1.0*10e-6);
-    Serial.println((int)speed); // currently in degrees/s
+    //Serial.println((int)speed); // currently in degrees/s
     last_ = now;
 }
 

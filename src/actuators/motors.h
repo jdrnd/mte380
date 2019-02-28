@@ -6,12 +6,20 @@
 #define LEFT_MOTOR_SENSOR_A_PIN 2
 #define LEFT_MOTOR_SENSOR_B_PIN 10
 
-#define LEFT_MOTOR_ENABLE_PIN 12
-#define LEFT_MOTOR_PWM_PIN 5
+#define LEFT_MOTOR_ENABLE_PIN 27
+#define LEFT_MOTOR_PWM_PIN 13
+
+#define RIGHT_MOTOR_ENABLE_PIN 12
+#define RIGHT_MOTOR_PWM_PIN 5
 
 // TODO set these
 #define RIGHT_MOTOR_SENSOR_A_PIN 0
 #define RIGHT_MOTOR_SENSOR_B_PIN 0
+
+enum : int8_t {
+    REVERSE = -1,
+    FORWARD = 1
+};
 
 /*
 motor->init({PINS}) must be called first for each motor before setSpeed is used
@@ -39,10 +47,9 @@ class Motors {
 
 class Motor {
     public:
-        void init(uint8_t, uint8_t, uint8_t, uint8_t);
+        void init(uint8_t, uint8_t, uint8_t, uint8_t, int8_t in_direction=FORWARD);
 
-        
-        uint8_t direction;
+        int8_t direction;
         double speed;
 
         void setSpeed(int8_t);
@@ -51,6 +58,8 @@ class Motor {
         // ISR when encoder encounters an edge
         void update();
     private:
+        int8_t orientation_;
+
         unsigned long last_;
         uint8_t pwm_pin_;
         uint8_t enable_pin_;
