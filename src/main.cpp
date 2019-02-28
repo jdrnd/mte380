@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifdef teensy
 
 #include <Arduino.h>
@@ -23,3 +24,20 @@ void loop() {
     delay(2000);
 }
 
+=======
+#include "sensors/magnetic.h"
+
+
+void setup() {
+    Serial.begin(115200);
+}
+
+void loop() {
+    delay(1000);
+    if (Magnetics::detectMagnet()) {
+        Serial.println("Magnet!");
+    } else {
+        Serial.println("No Magnet!");
+    }
+}
+>>>>>>> Interfaced hall effect sensor
