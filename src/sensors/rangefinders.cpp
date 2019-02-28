@@ -118,11 +118,7 @@ void Rangefinders::logReadings() {
     Serial.print(left.read());
     Serial.print(',');
     Serial.print(right.read());
-<<<<<<< HEAD
     Serial.print(',');
     Serial.print(close.read());
     Serial.print('\n');
-=======
-    Serial.print(",");
->>>>>>> Added Photosensor files
 }
