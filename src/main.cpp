@@ -49,7 +49,7 @@ void doMovementDemo() {
 
 void doSensorDemo() {
     while(true) {
-        delay(100);
+        delay(200);
         Accel accel = imu->getAccel();
         Serial.print("Accel: ");
         Serial.print((float)accel.x,4);
@@ -57,6 +57,9 @@ void doSensorDemo() {
         Serial.print((float)accel.y),4;
         Serial.print(",");
         Serial.println((float)accel.x,4);
+
+        Serial.print("Photo: ");
+        candleSensor.logLastReading();
     }
 }
 void loop() {
