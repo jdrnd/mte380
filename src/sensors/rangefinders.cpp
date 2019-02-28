@@ -44,7 +44,7 @@ void Rangefinder<SensorType>::logLastData() {
 // Initializes each range finder by placing them in standby (XSHUT LOW), then 
 // enabling each in turn and setting a unique address
 void Rangefinders::init() {
-    Serial.println("Init");
+    Serial.println("Init");     
     
     pinMode(FRONT_LIDAR_PIN, OUTPUT);
     pinMode(BACK_LIDAR_PIN, OUTPUT);
@@ -91,10 +91,7 @@ void Rangefinders::init() {
     }
     right.setAddress(RIGHT_LIDAR_ADDRESS);
 
-    // The close sensor's GPIO pin is NOT 5V tollerant so we set the pin to float instead of 
-    // setting it to high
-    pinMode(CLOSE_LIDAR_PIN, INPUT);           // set pin to input
-    digitalWrite(CLOSE_LIDAR_PIN, HIGH);       // turn on pullup resistors
+    digitalWrite(CLOSE_LIDAR_PIN, HIGH);
     if (!close.init())
     {
         Serial.println("Failed to detect and initialize close sensor!");
