@@ -106,19 +106,19 @@ uint8_t ColorSensor::curr_terrain(bool debug = false)
     }
     if(debug)
     {
-        Serial.print(r);
-        Serial.print(",");
-        Serial.print(g);
-        Serial.print(",");
-        Serial.println(b);
+        DEBUG_PRINT(r);
+        DEBUG_PRINT(",");
+        DEBUG_PRINT(g);
+        DEBUG_PRINT(",");
+        DEBUG_PRINT(b);
         
         // the print order is gravel, water, wood, sand
         for( int j = 0; j<4; j++)
         {
-            Serial.print(error[j]);
-            Serial.print(",");
+            DEBUG_PRINT(error[j]);
+            DEBUG_PRINT(",");
         }
-        Serial.println();
+        DEBUG_PRINT();
     }
     if(error[min_index] < dev[min_index])
     {

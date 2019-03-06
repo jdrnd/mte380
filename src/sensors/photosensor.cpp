@@ -5,10 +5,11 @@
 
 // Returns the sensor's last reading
 uint16_t Photosensor::read() {
-    return analogRead(PHOTOSENSOR_PIN);
+    last_reading = analogRead(PHOTOSENSOR_PIN);
+    return last_reading;
 }
 
 // Logs readings from photosensor to console
 void Photosensor::logLastReading() {
-    Serial.println(read());
+    DEBUG_PRINT(read());
 }

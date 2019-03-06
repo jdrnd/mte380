@@ -4,7 +4,7 @@
 #include "sensors/rangefinders.h"
 #include "sensors/photosensor.h"
 
-Rangefinders lidars;
+Rangefinders rangefinders;
 Photosensor candleSensor;
 
 void setup() {
@@ -14,13 +14,13 @@ void setup() {
     Wire.begin();
     Wire.setClock(400000); // use 400 kHz I2C
 
-    lidars.init();
-    lidars.run();
+    rangefinders.init();
+    rangefinders.run();
     Serial.println("Setup complete");
 }
 
 void loop() {
-    lidars.logReadings();
+    rangefinders.logReadings();
     candleSensor.logLastReading();
      Serial.print("\n");
     //localization(returns x,y,theta)

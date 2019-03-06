@@ -17,8 +17,10 @@
  */
 #ifndef CIRCULAR_BUFFER_H_
 #define CIRCULAR_BUFFER_H_
-#include <stdint.h>
+
+#include <stdint.h>	
 #include <stddef.h>
+#include <stdlib.h>
 
 #ifdef CIRCULAR_BUFFER_DEBUG
 #include <Print.h>

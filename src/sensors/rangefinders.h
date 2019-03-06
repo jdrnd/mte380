@@ -3,12 +3,15 @@
 
 #include <VL53L1X.h>
 #include <VL6180X.h>
+#include <CircularBuffer.h>
 
-#define FRONT_LIDAR_PIN 2
-#define BACK_LIDAR_PIN 3
-#define LEFT_LIDAR_PIN 4
-#define RIGHT_LIDAR_PIN 5
-#define CLOSE_LIDAR_PIN 6
+#include "common.h"
+
+#define FRONT_LIDAR_PIN 42
+#define BACK_LIDAR_PIN 43
+#define LEFT_LIDAR_PIN 44
+#define RIGHT_LIDAR_PIN 45
+#define CLOSE_LIDAR_PIN 46
 
 #define FRONT_LIDAR_ADDRESS 0x30
 #define BACK_LIDAR_ADDRESS 0x31
@@ -40,9 +43,11 @@ class Rangefinder {
         void logLastData();
         void setAddress(uint8_t);
 
+        uint16_t last_reading;
+
         bool isRunning;
     private:
-        uint16_t last_reading_;
+        CircularBuffer<uint16_t, 100> readings_;
         SensorType sensor;
 };
 
@@ -52,12 +57,13 @@ class Rangefinders
         void init();
         void run();
 
+        void readAll();
         void logReadings();
 
         Rangefinder<VL53L1X> front;
         Rangefinder<VL53L1X> back;
         Rangefinder<VL53L1X> left;
         Rangefinder<VL53L1X> right;
-        Rangefinder<VL6180X> close;
+        Rangefinder<VL6180X> short;
 };
 #endif
