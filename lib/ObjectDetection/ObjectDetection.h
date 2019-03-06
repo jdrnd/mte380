@@ -1,6 +1,5 @@
 #ifndef OBJECTDETECTION_H_
 #define OBJECTDETECTION_H_
-#endif
 
 #include <Arduino.h>
 
@@ -15,11 +14,20 @@
 //the distance in the units of the LIDAR for 12 inches = 305 mm
 #define DIS_PER_BLOCK 305
 
-//these will have to be calcualted 
-#define RIGHT_LIDAR_OFFSET 
-#define LEFT_LIDAR_OFFSET
-#define FRONT_LIDAR_OFFSET
-#define BACK_LIDAR_OFFSET
+//offsets to the lidars from the IMU
+//these will have to be calcualted, in mm
+#define RIGHT_LIDAR_OFFSET 50
+#define LEFT_LIDAR_OFFSET 50
+#define FRONT_LIDAR_OFFSET 100
+#define BACK_LIDAR_OFFSET 100
+
+enum LidarSensor : uint8_t
+    {
+        LIDAR_FRONT                               = 0,
+        LIDAR_LEFT                                = 1,
+        LIDAR_BACK                                = 2,
+        LIDAR_RIGHT                               = 3,
+    };
 
 /*
 
@@ -58,7 +66,7 @@ class ObjectDetection{
 		/* looks for differences in the L and R buffers to see if there are objects to the left or right of the robot
 		   will then attempt to place that object in the closest square, so high precision accuracy shouldn't be an issue for 6x6in precision.
         */
-		void scan_objects_lin(uint16_t heading, uint32_t X, uint32_t Y);
+		void scan_objects_lin(uint16_t heading, uint16_t X, uint16_t Y);
 		
 		/* uses a combination of the current heading and position to find where the object is
         ISSUES:
@@ -66,7 +74,7 @@ class ObjectDetection{
         -error increases the farther the object is
         -assumes we can somewhat accurately point turn, or always have our centre position during a turn
         */
-		void scan_objects_rot(double heading, uint32_t X, uint32_t Y);
+		void scan_objects_rot(uint16_t heading, uint16_t X, uint16_t Y);
 	
 	private:
 		// linear 2D array, hense (0,1) = index 6,
@@ -79,13 +87,13 @@ class ObjectDetection{
 		int16_t confidence[36];
 		
 		// takes the coordinate and rounds it to the nearest square
-        void round_object_coord(uint32_t X_obj, uint32_t Y_obj);
+        void round_object_coord(uint16_t X_obj, uint16_t Y_obj);
 		
 		
 		// translates the measurement to a coordinate in X, Y
 		// sensor = 0 -> left sensor, sensor = 1 -> right sensor
         // diff - the distance to the object detected
-		void locate_coord_lin(uint16_t heading, uint8_t sensor, uint32_t diff, uint32_t X, uint32_t Y);
+		void locate_coord_lin(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y);
 		
         /*
         translates the rotational measurment to a coordinate in X, Y
@@ -93,6 +101,8 @@ class ObjectDetection{
         sensor - 0 = front, 1 = left, 2 = back, 3 = right
         diff - the distance to the object detected
         (X,Y) - the robot's current position */
-		void locate_coord_rot(float heading, uint8_t sensor, uint32_t diff, uint32_t X, uint32_t Y);
+		void locate_coord_rot(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y);
 		
 };
+
+#endif
