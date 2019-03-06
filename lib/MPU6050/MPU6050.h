@@ -1022,10 +1022,10 @@ class MPU6050 {
     private:
         uint8_t devAddr;
         uint8_t buffer[14];
-    #if defined(MPU6050_INCLUDE_DMP_MOTIONAPPS20) or defined(MPU6050_INCLUDE_DMP_MOTIONAPPS41)
+    //#if defined(MPU6050_INCLUDE_DMP_MOTIONAPPS20) or defined(MPU6050_INCLUDE_DMP_MOTIONAPPS41)
         uint8_t *dmpPacketBuffer;
         uint16_t dmpPacketSize;
-    #endif
+    //#endif
 };
 
 #endif /* _MPU6050_H_ */

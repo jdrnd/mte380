@@ -19,6 +19,8 @@
 #define CIRCULAR_BUFFER_INT_SAFE
 #include <CircularBuffer.h>
 
+#include "common.h"
+
 #define IMU_INTERRUPT_PIN 3
 
 // Number of values of history to keep
@@ -58,7 +60,10 @@ class IMU {
         bool init();
         void run();
 
-        void onInterupt();
+        void readData();
+
+        Accel accel;
+        Orientation orientation;
 
         Accel getAccel();
         Orientation getYPR();
@@ -74,12 +79,14 @@ class IMU {
         // class default I2C address is 0x68
         MPU6050 mpu_;
         uint16_t imu_packetsize_;
+
+        volatile bool data_ready_;
 };
 
 class IMU_Wrapper {
     public:
         static IMU* primary;
-        static void onPrimaryInterrupt();
+        static void onDataReady();
 };
 
 #endif

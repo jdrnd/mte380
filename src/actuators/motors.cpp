@@ -15,6 +15,16 @@ void Motors::rightMotorInterrupt() {
     right->update();
 }
 
+void Motors::setSpeed(int8_t speed) {
+    Motors::left->setSpeed(speed);
+    Motors::right->setSpeed(speed);
+}
+
+void Motors::stop() {
+    Motors::left->stop();
+    Motors::right->stop();
+}
+
 // Initializes motor with pins and sets up interrupts
 // Must be ran before motor.setSpeed() can be used
 void Motor::init(uint8_t pwm_pin, uint8_t enable_pin, uint8_t sensor1_pin, uint8_t sensor2_pin, int8_t in_direction) {
@@ -23,6 +33,8 @@ void Motor::init(uint8_t pwm_pin, uint8_t enable_pin, uint8_t sensor1_pin, uint8
     sensor1_pin_ = sensor1_pin;
     sensor2_pin_ = sensor2_pin;
     orientation_=in_direction;
+
+    speed=0;
 
     pinMode(sensor2_pin, INPUT);
     if (sensor1_pin == LEFT_MOTOR_SENSOR_A_PIN) {
@@ -34,23 +46,23 @@ void Motor::init(uint8_t pwm_pin, uint8_t enable_pin, uint8_t sensor1_pin, uint8
     pinMode(enable_pin_, OUTPUT);
 
     last_ = micros();
+    speeds_.push(0.0);
 }
 
-// Accepts value from -100 to +100 corresponding to speed
+// Accepts value from -20 to +20 corresponding to speed in absolute cm/s
 // Should not be used with a value of 0, stop() should be called instead
 void Motor::setSpeed(int8_t speedval) {
-    Serial.print(speedval);
-    Serial.print(",");
-    speedval = map(speedval, -100,100, 0, 255);
-    Serial.println((uint8_t)speedval);
+    double speed_command_ = speedval;
 
-    Serial.println(orientation_);
+    // scale to [0,255] range
+    double pwm_command_ = (speed_command_ + 20) * 255 / 40;
+
     if (orientation_==REVERSE) {
-        speedval = 255 - speedval;
+        pwm_command_ = 255 - pwm_command_;
     }
 
     digitalWrite(enable_pin_, HIGH);
-    analogWrite(pwm_pin_, speedval);
+    analogWrite(pwm_pin_, pwm_command_);
 }
 
 // Stops motor immediatly 
@@ -61,25 +73,32 @@ void Motor::stop() {
 // Interrupt service routine called when a motor encoder encounters an edge
 // Sets speed and direction in the motor class
 void Motor::update() {
-
-    if (digitalRead(LEFT_MOTOR_SENSOR_B_PIN) == HIGH) {
-        //Serial.println("Forwards");
-        direction = 1;
+    if (this == Motors::left) {
+        if ( (digitalRead(LEFT_MOTOR_SENSOR_B_PIN) == HIGH && orientation_==REVERSE) || 
+                (digitalRead(LEFT_MOTOR_SENSOR_B_PIN) == LOW && orientation_!=REVERSE)) {
+            direction = 1;
+        }
+        else {
+            direction = -1;
+        }
     }
-    else {
-        //Serial.println("Backwards");
-        direction = -1;
+    else if (this == Motors::right) {
+        if ( (digitalRead(RIGHT_MOTOR_SENSOR_B_PIN) == HIGH && orientation_==REVERSE) || 
+                (digitalRead(RIGHT_MOTOR_SENSOR_B_PIN) == LOW && orientation_!=REVERSE)) {
+            direction = 1;
+        }
+        else {
+            direction = -1;
+        }
     }
 
     unsigned long now = micros();
     unsigned long delta = now - last_;
 
     // 90 measurements, so 4 degrees per measurement however we only interupt on one rising edge (8 degrees/measurement)
-    speed = 8/(delta*1.0*10e-6);
-    //Serial.println((int)speed); // currently in degrees/s
+    speed = direction*8/(delta*1.0*10e-6); // currently in degrees/s
+    speed = (speed/360)*2*M_PI * WHEEL_RADIUS; // cm/s
     last_ = now;
+    speeds_.push(MOTOR_FILTER_ALPHA*speed + (1-MOTOR_FILTER_ALPHA)*speeds_.last());
+    filtered_speed = speeds_.last();
 }
-
-
-
-

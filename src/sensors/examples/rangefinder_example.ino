@@ -3,7 +3,7 @@
 
 #include "sensors/rangefinders.h"
 
-Rangefinders lidars;
+Rangefinders rangefinders;
 
 void setup() {
     Serial.begin(115200);
@@ -12,12 +12,12 @@ void setup() {
     Wire.begin();
     Wire.setClock(400000); // use 400 kHz I2C
 
-    lidars.init();
-    lidars.run();
+    rangefinders.init();
+    rangefinders.run();
     Serial.println("Setup complete");
 }
 
 void loop() {
-    lidars.logReadings();
+    rangefinders.logReadings();
     delay(200);
 }

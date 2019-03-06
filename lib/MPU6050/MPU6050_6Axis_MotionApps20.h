@@ -261,7 +261,7 @@ const unsigned char dmpMemory[MPU6050_DMP_CODE_SIZE] PROGMEM = {
 };
 
 #ifndef MPU6050_DMP_FIFO_RATE_DIVISOR 
-#define MPU6050_DMP_FIFO_RATE_DIVISOR 0x01
+#define MPU6050_DMP_FIFO_RATE_DIVISOR 0x01 // Can be modified down to 0x07 = 25Hz (200 /(1+X))
 #endif
 
 // thanks to Noah Zerkin for piecing this stuff together!
@@ -317,8 +317,8 @@ const unsigned char dmpUpdates[MPU6050_DMP_UPDATES_SIZE] PROGMEM = {
     0x00,   0x60,   0x04,   0x00, 0x40, 0x00, 0x00
 };
 
-uint8_t MPU6050::dmpInitialize();
-bool MPU6050::dmpPacketAvailable();
+//uint8_t MPU6050::dmpInitialize();
+//bool MPU6050::dmpPacketAvailable();
 
 
 // uint8_t MPU6050::dmpSetFIFORate(uint8_t fifoRate);

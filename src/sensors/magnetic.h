@@ -1,3 +1,6 @@
+#ifndef MAGNETICS_H
+#define MAGNETICS_H
+
 #include <Arduino.h>
 
 /*
@@ -37,3 +40,5 @@ class Magnetics {
         };
         static Magnetic sensors_[NUM_MAGNETIC_SENSORS];
 };
+
+#endif

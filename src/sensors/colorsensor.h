@@ -3,9 +3,11 @@
 
 #ifndef _COLORSENSOR_H_
 #define _COLORSENSOR_H_
-#endif
 
 #include <Arduino.h>
+
+#include "common.h"
+
 // These are the configuration pins on the Arduino Mega
 /* 
    Pins 0-1 control the scaling of the frequency output, input, connect to digital
@@ -85,3 +87,5 @@ class ColorSensor{
         const int32_t dev[4] = {150000, 150000, 150000, 300000};
         
 };
+
+#endif

@@ -3,6 +3,7 @@
 
 #define PHOTOSENSOR_PIN A0
 
+#include "common.h"
 /*
 Requires that Wire.begin() and Wire.setClock() are called first.
 
@@ -15,6 +16,7 @@ class Photosensor {
     public:
         uint16_t read();
         void logLastReading();
+        uint16_t last_reading;
         //Possibly add running average or circular buffer
 };
 
