@@ -103,7 +103,7 @@ void doPathFinderDemo() {
     PathFinder pathFinder;
     pathFinder.init();
     pathFinder.printMapTerrain();
-    pathFinder.planPath(2,2);
+    pathFinder.planPath(TILE_COLS - 1, TILE_ROWS - 1);
     pathFinder.printMapParents();
     pathFinder.printMapFCosts();
     //printMapFCosts
