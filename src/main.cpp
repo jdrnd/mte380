@@ -7,6 +7,8 @@
 #include "sensors/photosensor.h"
 #include "sensors/imu.h"
 
+#include "path_finder/path_finder.h"
+
 Motors motors;
 
 Photosensor candleSensor;
@@ -94,7 +96,23 @@ void doSensorDemo() {
         }
     }
 }
+
+void doPathFinderDemo() {
+    Serial.println("\n   PATH FINDER DEMO");
+    
+    PathFinder pathFinder;
+    pathFinder.init();
+    pathFinder.printMapTerrain();
+    pathFinder.planPath(2,2);
+    pathFinder.printMapParents();
+    pathFinder.printMapFCosts();
+    //printMapFCosts
+}
+
 void loop() {
+    doPathFinderDemo();
+    while(true){}
+
     doMovementDemo();
     doSensorDemo();
     while(true){}
