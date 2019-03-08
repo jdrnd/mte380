@@ -126,6 +126,10 @@ public:
 	 */
 	void inline clear();
 
+	T* get_tail() const;
+
+	T* get_buffer() const;
+
 	#ifdef CIRCULAR_BUFFER_DEBUG
 	void inline debug(Print* out);
 	void inline debugFn(Print* out, void (*printFunction)(Print*, T));

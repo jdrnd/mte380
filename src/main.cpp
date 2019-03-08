@@ -22,6 +22,8 @@ Motors motors;
 Photosensor candleSensor;
 Rangefinders rangefinders;
 
+bool objects[36];
+int16_t confidence[36];
 
 Scheduler taskManager;
 
