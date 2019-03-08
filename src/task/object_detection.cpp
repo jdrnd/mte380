@@ -2,7 +2,7 @@
 #include "object_detection.h"
 #include <Arduino.h>
 
-uint16_t* get_last_values(uint8_t amount, uint16_t* tail, uint16_t* buffer)
+uint16_t* get_values(uint8_t amount, uint16_t* tail, uint16_t* buffer)
 {
 	uint16_t* values = new uint16_t[amount];
 	//if the tail has enough data points behind it
@@ -30,105 +30,119 @@ uint16_t* get_last_values(uint8_t amount, uint16_t* tail, uint16_t* buffer)
 }
 
 void scan_objects_lin(uint16_t heading, uint16_t X, uint16_t Y){
-	// scan with this width [0][1][i][3][4][5]
+	
+	// scan with tail-->[0][1][POI]EDGE[3][4][5]<--old data
+	// if there is enough data
     if(rangefinders.front.readings_.size() > 6)
 	{
-		uint16_t* R = get_last_values(6, rangefinders.right.readings_.last(),)
+		uint16_t* R = get_values(6, rangefinders.right.readings_.get_tail(), rangefinders.right.readings_.get_buffer());
+		uint16_t* L = get_values(6, rangefinders.left.readings_.get_tail(), rangefinders.left.readings_.get_buffer());
+
 		// if difference between i and i-1 then check prev 2 value and next 2 for consistency
-		for(index_t i = 3; i<BUFF_SIZE-3; i++)
+		uint32_t diff_R = abs(R[2] - R[3]);
+		uint32_t diff_L = abs(L[2] - L[3]);
+	
+		if(diff_R > THRESHOLD)
 		{
-			uint32_t diff_R = abs(R[i] - R[i-1]);
-			uint32_t diff_L = abs(L[i] - L[i-1]);
-		
-			if(diff_R > THRESHOLD)
+			//check that previous values are consistent
+			if(abs(R[2]-R[4]) > THRESHOLD && abs(R[2]-R[5]) > THRESHOLD)
 			{
-				//check that previous values are consistent
-				if(abs(R[i-2]-R[i]) > THRESHOLD && abs(R[i-3]-R[i]) > THRESHOLD)
+				//check that the next two values are also a significant change to avoid noise
+				if(abs(R[3]-R[1]) > THRESHOLD && abs(R[3]-R[0]) > THRESHOLD)
 				{
-					//check that the next two values are also a significant change to avoid noise
-					if(abs(R[i+1]-R[i-1]) > THRESHOLD && abs(R[i+2]-R[i-1]) > THRESHOLD)
-					{
-						locate_coord_lin(heading, LIDAR_RIGHT, min(R[i], R[i-1]) + RIGHT_LIDAR_OFFSET, X, Y);
-					}
-				}
-			}
-			if(diff_L > THRESHOLD)
-			{
-				//check that previous values are consistent
-				if(abs(L[i-2]-L[i]) > THRESHOLD && abs(L[i-3]-L[i]) > THRESHOLD)
-				{
-					//check that the next two values are also a significant change to avoid noise
-					if(abs(L[i+1]-L[i-1]) > THRESHOLD && abs(L[i+2]-L[i-1]) > THRESHOLD)
-					{
-						locate_coord_lin(heading, LIDAR_LEFT, min(L[i], L[i-1]) + LEFT_LIDAR_OFFSET, X, Y);
-					}
+					locate_coord_lin(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
 				}
 			}
 		}
-	}	
+		if(diff_L > THRESHOLD)
+		{
+			if(abs(L[2]-L[4]) > THRESHOLD && abs(L[2]-L[5]) > THRESHOLD)
+			{
+				//check that the next two values are also a significant change to avoid noise
+				if(abs(L[3]-L[1]) > THRESHOLD && abs(L[3]-L[0]) > THRESHOLD)
+				{
+					locate_coord_lin(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
+				}
+			}
+		}
+		// delete the arrays of lidar data
+		delete [] R;
+		delete [] L;
+	}		
 }
 
 void scan_objects_rot(uint16_t heading, uint16_t X, uint16_t Y)
 {
-	for(uint16_t i = 1; i<BUFF_SIZE; i++)
+	//if there is enough data
+	if(rangefinders.front.readings_.size() > 6)
 	{
-		uint32_t diff_R = abs(R[i] - R[i-1]);
-		uint32_t diff_L = abs(L[i] - L[i-1]);
-		uint32_t diff_F = abs(F[i] - F[i-1]);
-		uint32_t diff_B = abs(B[i] - B[i-1]);
+		uint16_t* R = get_values(6, rangefinders.right.readings_.get_tail(), rangefinders.right.readings_.get_buffer());
+		uint16_t* L = get_values(6, rangefinders.left.readings_.get_tail(), rangefinders.left.readings_.get_buffer());
+		uint16_t* F = get_values(6, rangefinders.front.readings_.get_tail(), rangefinders.front.readings_.get_buffer());
+		uint16_t* B = get_values(6, rangefinders.back.readings_.get_tail(), rangefinders.back.readings_.get_buffer());
+
+		uint16_t diff_R = abs(R[3] - R[2]);
+		uint16_t diff_L = abs(L[3] - L[2]);
+		uint16_t diff_F = abs(F[3] - F[2]);
+		uint16_t diff_B = abs(B[3] - B[2]);
 		if(diff_R > THRESHOLD)
 		{
-            //check that
-            if(abs(R[i-2]-R[i]) > THRESHOLD && abs(R[i-3]-R[i]) > THRESHOLD)
-            {
-                //check that the next two values are also a significant change to avoid noise
-                if(abs(R[i+1]-R[i-1]) > THRESHOLD && abs(R[i+2]-R[i-1]) > THRESHOLD)
-                {
-                    locate_coord_rot(heading, LIDAR_RIGHT, min(R[i], R[i-1]) + RIGHT_LIDAR_OFFSET, X, Y);
-                }
-            }
+            //check that previous values are consistent
+			if(abs(R[2]-R[4]) > THRESHOLD && abs(R[2]-R[5]) > THRESHOLD)
+			{
+				//check that the next two values are also a significant change to avoid noise
+				if(abs(R[3]-R[1]) > THRESHOLD && abs(R[3]-R[0]) > THRESHOLD)
+				{
+					locate_coord_rot(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
+				}
+			}
         }
 		if(diff_L > THRESHOLD)
 		{
-            //check that previous values are consistent
-            if(abs(L[i-2]-L[i]) > THRESHOLD && abs(L[i-3]-L[i]) > THRESHOLD)
-            {
-                //check that the next two values are also a significant change to avoid noise
-                if(abs(L[i+1]-L[i-1]) > THRESHOLD && abs(L[i+2]-L[i-1]) > THRESHOLD)
-                {
-			        locate_coord_lin(heading, LIDAR_LEFT, min(L[i], L[i-1]) + LEFT_LIDAR_OFFSET, X, Y);
-                }
-            }
+			//check that the previous 2 values are consistent
+            if(abs(L[2]-L[4]) > THRESHOLD && abs(L[2]-L[5]) > THRESHOLD)
+			{
+				//check that the next two values are also a significant change to avoid noise
+				if(abs(L[3]-L[1]) > THRESHOLD && abs(L[3]-L[0]) > THRESHOLD)
+				{
+					locate_coord_rot(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
+				}
+			}
         }
 		if(diff_F > THRESHOLD)
 		{
-            //check that previous values are consistent
-            if(abs(F[i-2]-F[i]) > THRESHOLD && abs(F[i-3]-F[i]) > THRESHOLD)
-            {
-                //check that the next two values are also a significant change to avoid noise
-                if(abs(F[i+1]-F[i-1]) > THRESHOLD && abs(F[i+2]-F[i-1]) > THRESHOLD)
-                {
-			        locate_coord_rot(heading, LIDAR_FRONT, min(F[i], F[i-1]) + FRONT_LIDAR_OFFSET, X, Y);
-                }
-            }
+            //check that the previous 2 values are consistent
+            if(abs(F[2]-F[4]) > THRESHOLD && abs(F[2]-F[5]) > THRESHOLD)
+			{
+				//check that the next two values are also a significant change to avoid noise
+				if(abs(F[3]-F[1]) > THRESHOLD && abs(F[3]-F[0]) > THRESHOLD)
+				{
+					locate_coord_rot(heading, LIDAR_RIGHT, min(F[3], F[2]) + FRONT_LIDAR_OFFSET, X, Y);
+				}
+			}
         }
 		if(diff_B > THRESHOLD)
 		{
-            //check that previous values are consistent
-            if(abs(B[i-2]-B[i]) > THRESHOLD && abs(B[i-3]-B[i]) > THRESHOLD)
-            {
-                //check that the next two values are also a significant change to avoid noise
-                if(abs(B[i+1]-B[i-1]) > THRESHOLD && abs(B[i+2]-B[i-1]) > THRESHOLD)
-                {
-			locate_coord_rot(heading, LIDAR_BACK, min(B[i], B[i-1]) + BACK_LIDAR_OFFSET, X, Y);
-                }
-            }
+            //check that the previous 2 values are consistent
+            if(abs(B[2]-B[4]) > THRESHOLD && abs(B[2]-B[5]) > THRESHOLD)
+			{
+				//check that the next two values are also a significant change to avoid noise
+				if(abs(B[3]-B[1]) > THRESHOLD && abs(B[3]-B[0]) > THRESHOLD)
+				{
+					locate_coord_rot(heading, LIDAR_RIGHT, min(B[3], B[2]) + BACK_LIDAR_OFFSET, X, Y);
+				}
+			}
         }
+		// delete the newly allocated data
+		delete [] R;
+		delete [] L;
+		delete [] F;
+		delete [] B;
 	}		
 }
 
 // heavily relies on us being able to maintain a cardinal direction
-void ObjectDetection::locate_coord_lin(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y)
+void locate_coord_lin(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y)
 {
 	if(heading == 0)
 	{	
@@ -162,15 +176,15 @@ void ObjectDetection::locate_coord_lin(uint16_t heading, LidarSensor sensor, uin
 
 
 
-void ObjectDetection::locate_coord_rot(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y)
+void locate_coord_rot(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y)
 {
-	double X_obj = X + diff*cos(heading+0.5*PI*sensor);
-	double Y_obj = Y + diff*sin(heading+0.5*PI*sensor);
+	double X_obj = X + diff*cos(heading*2*PI/180+0.5*PI*sensor);
+	double Y_obj = Y + diff*sin(heading*2*PI/180+0.5*PI*sensor);
 
 	round_object_coord(uint32_t(X_obj), uint32_t(Y_obj));
 }
 
-void ObjectDetection::round_object_coord(uint16_t X_obj,uint16_t Y_obj)
+void round_object_coord(uint16_t X_obj,uint16_t Y_obj)
 {	
 	if(X_obj < 6*DIS_PER_BLOCK && Y_obj < 6*DIS_PER_BLOCK)
 	{
