@@ -2,16 +2,18 @@
 #include <math.h>
 #include "path_finder/path_finder.h"
 
-void PathFinder::init(){
-    // test starting positions
-    bot_x = 3;
-    bot_y = 3;
-    bot_r = 1;
+void PathFinder::init() {
+    planned = false;
+    path_populated = false;
+    bot_set = false;
+    target_set = false;
+
+    randomSeed(analogRead(0));
 
     // Initialize the map
     for(size_t i = 0; i < TILE_ROWS; i++)
         for(size_t j = 0; j < TILE_COLS; j++) {
-            map[i][j].terrain = 1;
+            map[i][j].terrain = UNKNOWN; //getRandomTerrain();
             map[i][j].f_cost = INF_COST;
             map[i][j].g_cost = INF_COST;
             map[i][j].h_cost = INF_COST;
@@ -20,22 +22,37 @@ void PathFinder::init(){
             // parrent value to show that the tile has not been evaluated yet
             map[i][j].parent = 5;
         }
-    // test terrain
-    map[5][1].terrain = 0;
-    map[4][3].terrain = 0;
-    map[1][1].terrain = 0;
 }
 
-void PathFinder::planPath(uint8_t target_x, uint8_t target_y)
+void PathFinder::setTargetPosition(uint8_t x, uint8_t y) {
+    target_x = x;
+    target_y = y;
+    planned = false;
+    target_set = true;
+}
+
+void PathFinder::setBotPosition(uint8_t x, uint8_t y, uint8_t r) {
+    bot_x = x;
+    bot_y = y;
+    bot_r = r;
+    // if the bot has never been in the map we know that it is being placed on wood
+    if (!bot_set)
+        map[bot_y][bot_x].terrain = WOOD;
+    planned = false;
+    bot_set = true;
+}
+
+bool PathFinder::planPath()
 {
-    // TODO @JordanSlater make these static class constants
-    const int8_t x_dir[4] = {1,0,-1,0};
-    const int8_t y_dir[4] = {0,1,0,-1};
+    if (!bot_set || !target_set) {
+        Serial.println("Set bot and target before planning! ");
+        return false;
+    }
+    planned = false;
     /* the tile (x,y) is the current tile that is being evaluated in the 
         algorithm, start at the starting position of the bot */
     uint8_t x = bot_x;
     uint8_t y = bot_y;
-    boolean done = false; // true when a plan has been found
     uint16_t count = 0; // number of steps the algorithm has taken
     
     // TODO @JordanSlater rename this to DEBUG
@@ -58,7 +75,7 @@ void PathFinder::planPath(uint8_t target_x, uint8_t target_y)
 
     /* iterate through the algorithm until a path is found or there are too many
         steps */
-    while(!done && count < 100) {
+    while(count < MAX_ALGORITHM_STEPS) {
         // find the tile with the lowest f_cost in the open set
         // TODO @Jordan Slater make this into a private function
         /* TODO @Jordan Slater make this use function prioritize the lower 
@@ -82,24 +99,32 @@ void PathFinder::planPath(uint8_t target_x, uint8_t target_y)
         map[y][x].inClosed = true;
 
         if (x == target_x && y == target_y)
-            done = true; // we found the target tile
-        else {
+        {
+            Serial.println("Done planning path");
+            planned = true;
+            return true;
+        } else {
             // evaluate at each of the cardinal neighbours of the current tile
             for(size_t dir = 0; dir < 4; dir++)
             {
-                // neighbour coords
-                // TODO @JordanSlater replace these with math
-                int8_t nx = x + x_dir[dir];
-                int8_t ny = y + y_dir[dir];
+                // get the coords of the neighbouring tile
+                int8_t nx = x + X_DIR[dir];
+                int8_t ny = y + Y_DIR[dir];
                 // if the neighbour is in map bounds
                 if (nx < TILE_COLS && nx >= 0 && ny < TILE_ROWS && ny >= 0)
                     // is the tile isn't water and it's not in closed
-                    if (map[ny][nx].terrain != 0 && !map[ny][nx].inClosed)
+                    if (map[ny][nx].terrain != WATER && !map[ny][nx].inClosed)
                     {
                         // compute the h_cost if the bot was to move to the tile
                         h_cost = TILE_COST * (abs(target_x - nx) 
                             + abs(target_y - ny));
-                        // same for g_cost
+                        if (map[ny][nx].terrain == GRAVEL)
+                            h_cost+= GRAVEL_COST;
+                        else if (map[ny][nx].terrain == SAND)
+                            h_cost+= SAND_COST;
+                        else if (map[ny][nx].terrain == UNKNOWN)
+                            h_cost+= UNKNOWN_COST;
+                        // compute the g_cost of getting to the tile
                         g_cost = TILE_COST + map[y][x].g_cost;
                         // if the bot has to turn
                         if (map[y][x].parent != (dir + 2) % 4)
@@ -133,10 +158,80 @@ void PathFinder::planPath(uint8_t target_x, uint8_t target_y)
         Serial.println();
         */
     }
-    if (done)
-        Serial.println("Done planning path");
-    else
-        Serial.println("Ran out of steps");
+    Serial.println("Ran out of steps");
+    return false;
+}
+
+bool PathFinder::createPath() {
+    if (!planned)
+        return false;
+    // work backwards from the target tile to the bot's tile
+    int8_t x = target_x;
+    int8_t y = target_y;
+    // the parent of the previous tile
+    uint8_t prev_parent;
+    plan_steps = 0; 
+    while(plan_steps < MAX_PLAN_SIZE)
+    {
+        // found the bot's tile
+        if (x == bot_x && y == bot_y) {
+            path_populated = true;
+            return true;
+        }
+        // store the previous parent
+        prev_parent = map[y][x].parent;
+        // move backward in the path
+        x+= X_DIR[prev_parent];
+        y+= Y_DIR[prev_parent];
+        // make sure the new tile is in the map
+        if (x < 0 || x >= TILE_COLS || y < 0 || y >= TILE_ROWS) {
+            Serial.println("Error while creating plan, out of bounds at step: " 
+                    + String(plan_steps));
+            return false;
+        }
+        // add a forward move to the path
+        plan[plan_steps++] = 0;
+        // if the bot has changed orientation since the last tile
+        if (prev_parent != map[y][x].parent)
+            if ((map[y][x].parent + 1) % 4 == prev_parent)
+                // the bot turned left
+                plan[plan_steps++] = 1;
+            else if ((prev_parent + 1) % 4 == map[y][x].parent)
+                // the bot turned right
+                plan[plan_steps++] = -1;
+            else { // the parent tile points back at the current tile
+                Serial.println("Error while creating plan, repeat tile at step: " 
+                    + String(plan_steps));
+                return false;
+            }
+    }
+    // path is too long for path array
+    path_populated = false;
+    return false;
+}
+
+int8_t* PathFinder::retrievePlan(bool & success, uint8_t & steps) {
+    // make sure the path has actually been planned
+    if (planned) {
+        // if the path array has not been populated
+        if (!path_populated) {
+            // create the path and if that fails you can't return a path. 
+            if (!createPath()) {
+                success = false;
+                return NULL;
+            }
+        }
+        // path array is populated
+        success = true;
+        steps = plan_steps;
+        return plan;
+    }
+    success = false;
+    return NULL;
+}
+
+uint8_t PathFinder::getRandomTerrain() {
+    return TILE_PROBABILITY[(uint8_t)(random(0,36))];
 }
 
 void PathFinder::printMapTerrain() {

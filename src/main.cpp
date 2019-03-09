@@ -102,11 +102,25 @@ void doPathFinderDemo() {
     
     PathFinder pathFinder;
     pathFinder.init();
+    pathFinder.setBotPosition(0,0,0);
     pathFinder.printMapTerrain();
-    pathFinder.planPath(TILE_COLS - 1, TILE_ROWS - 1);
+    pathFinder.setTargetPosition(TILE_COLS - 1, TILE_ROWS - 1);
+    //pathFinder.setTargetPosition(1, 1);
+
+    pathFinder.planPath();
     pathFinder.printMapParents();
-    pathFinder.printMapFCosts();
-    //printMapFCosts
+    bool success = true;
+    uint8_t steps = 0;
+    int8_t* plan = pathFinder.retrievePlan(success,steps);
+    if (success)
+    {
+        Serial.println("Steps: " + String(steps));
+        String s = "";
+        for(size_t i = 0; i < steps; i++)
+            s = s + String(plan[i]) + ",";
+        Serial.println(s);
+    }
+    //pathFinder.printMapFCosts();
 }
 
 void loop() {
