@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "actuators/motors.h"
+#include "actuators/drive_motors.h"
 
 #include "sensors/colorsensor.h"
 #include "sensors/magnetic.h"

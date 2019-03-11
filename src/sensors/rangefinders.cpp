@@ -94,12 +94,12 @@ void Rangefinders::init() {
     right.setAddress(RIGHT_LIDAR_ADDRESS);
 
     digitalWrite(CLOSE_LIDAR_PIN, HIGH);
-    if (!short.init())
+    if (!shortrange.init())
     {
-        DEBUG_PRINT("Failed to detect and initialize short sensor!");
+        DEBUG_PRINT("Failed to detect and initialize shortrange sensor!");
         while (1);
     }
-    short.setAddress(CLOSE_LIDAR_ADDRESS);
+    shortrange.setAddress(CLOSE_LIDAR_ADDRESS);
 }
 
 // Runs all LIDARS
@@ -108,7 +108,7 @@ void Rangefinders::run() {
     back.run();
     left.run();
     right.run();
-    short.run();
+    shortrange.run();
 }
 
 void Rangefinders::readAll() {
@@ -116,7 +116,7 @@ void Rangefinders::readAll() {
     back.read();
     left.read();
     right.read();
-    short.read();
+    shortrange.read();
 }
 
 // Logs readings from all LIDARS to console, comma seperated
@@ -129,6 +129,6 @@ void Rangefinders::logReadings() {
     DEBUG_PRINT(',');
     DEBUG_PRINT(right.read());
     DEBUG_PRINT(',');
-    DEBUG_PRINT(short.read());
+    DEBUG_PRINT(shortrange.read());
     DEBUG_PRINT('\n');
 }
