@@ -8,6 +8,7 @@ Some of the code in this file was taken from https://github.com/jrowberg/i2cdevl
 IMU* IMU_Wrapper::primary = new IMU;
 
 // Sets up and initializes the IMU
+// takes about 500 ms to run
 bool IMU::init() {
     data_ready_ = false;
 
@@ -60,7 +61,7 @@ void IMU::run() {
 
 // Interrupt that tells us the IMU has new data
 void IMU_Wrapper::onDataReady() {
-    DEBUG_PRINT("interrupted");
+    //DEBUG_PRINT("interrupted");
     imu->data_ready_ = true;
 }
 
@@ -68,18 +69,22 @@ void IMU_Wrapper::onDataReady() {
 void IMU::readData() {
     mpu_.resetFIFO();
     data_ready_ = false;
-    while(!data_ready_) {
-        DEBUG_PRINT("waiting");
-    }; // TODO add a timeout
 
-    uint16_t fifoCount = mpu_.getFIFOCount();
-        
+    DEBUG_PRINT("waiting for IMU")
     // wait for correct available data length, should be a VERY short wait
-    while (fifoCount < imu_packetsize_) fifoCount = mpu_.getFIFOCount();
+    uint16_t fifoCount = mpu_.getFIFOCount();
+    while (fifoCount < imu_packetsize_) {
+        fifoCount = mpu_.getFIFOCount();
+        DEBUG_PRINT("nodata")
+    }
 
+    DEBUG_PRINT("passedwait");
+    DEBUG_PRINT("imu has bytes");
     // read a packet from FIFO
     uint8_t imu_buffer[64];
     mpu_.getFIFOBytes(imu_buffer, imu_packetsize_);
+
+    DEBUG_PRINT("gotbytes bytes");
     
     // track FIFO count here in case there is > 1 packet available
     // (this lets us immediately read more without waiting for an interrupt)
@@ -114,6 +119,8 @@ void IMU::readData() {
     orientation.pitch = pitch_.last();
     roll_.push(IMU_FILTER_ALPHA*(ypr[2] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*roll_.last());
     orientation.roll = roll_.last();
+
+    DEBUG_PRINT("doneimu");
 }
 
 // Returns x,y,z acceleration as a struct
