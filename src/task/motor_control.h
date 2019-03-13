@@ -10,6 +10,8 @@
 
 #define MOTOR_PROPORTIONAL_CONTSTANT 5
 
+#include "sensors/imu.h"
+
 extern Task t_motorControl;
 extern Motors motors;
 
