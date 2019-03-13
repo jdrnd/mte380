@@ -19,11 +19,11 @@
 
    Ensure the sensor is connected to 5v and power
 */
-#define COLOR_SENSOR_PIN0 3 
-#define COLOR_SENSOR_PIN1 4
-#define COLOR_SENSOR_PIN2 5
-#define COLOR_SENSOR_PIN3 6
-#define COLOR_SENSOR_OUT  8
+#define COLOR_SENSOR_PIN0 36 
+#define COLOR_SENSOR_PIN1 37
+#define COLOR_SENSOR_PIN2 38
+#define COLOR_SENSOR_PIN3 39
+#define COLOR_SENSOR_OUT  34
 
 // Define the experimental constants for the color sensor
 // 02/06/19 Currently the devations are not being explicitly used due to not
@@ -56,12 +56,22 @@
 #define COLOR_SAND_B                    2536
 #define COLOR_SAND_BDEV                 121
  
-enum freqGainLevel : uint8_t
-    {
-        FREQ_GAIN_LOW                               = 3,
-        FREQ_GAIN_MED                               = 2,
-        FREQ_GAIN_HIGH                              = 1,
-    };
+
+ #define WATER_MIN_HEIGHT 60
+enum freqGainLevel : uint8_t {
+    FREQ_GAIN_LOW                               = 3,
+    FREQ_GAIN_MED                               = 2,
+    FREQ_GAIN_HIGH                              = 1,
+};
+
+// 0 -> grav, 1 -> water, 2 -> wood, 3-> sand
+enum class Terrain: uint8_t {
+    GRAVEL = 0,
+    WATER = 1,
+    WOOD = 2,
+    SAND = 3,
+    ERROR = 5
+}; 
 
 class ColorSensor{
     public:
@@ -72,9 +82,15 @@ class ColorSensor{
         uint16_t read_red();
         uint16_t read_green();
         uint16_t read_blue();
+        
+        uint16_t r;
+        uint16_t b;
+        uint16_t g;
 
         // Returns a value 0-4 based on the terrain type, 5 if undefined
-        uint8_t curr_terrain(bool debug = false);
+        void read_terrain(bool debug = false);
+        Terrain curr_terrain;
+        void update_terrain(uint16_t distance);
     private:
         freqGainLevel freq_gain_;
         uint16_t delay_time_;
@@ -85,6 +101,7 @@ class ColorSensor{
         // the hand wavey absolute error allowed for the innitial algorithm
         // will need more data to tune
         const int32_t dev[4] = {150000, 150000, 150000, 300000};
+
         
 };
 

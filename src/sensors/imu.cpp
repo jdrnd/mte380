@@ -67,8 +67,8 @@ void IMU_Wrapper::onDataReady() {
 
 // ISR that is run every time the IMU has a new reading
 void IMU::readData() {
-    mpu_.resetFIFO();
-    data_ready_ = false;
+    //mpu_.resetFIFO();
+    //data_ready_ = false;
 
     DEBUG_PRINT("waiting for IMU")
     // wait for correct available data length, should be a VERY short wait
@@ -121,6 +121,8 @@ void IMU::readData() {
     orientation.roll = roll_.last();
 
     DEBUG_PRINT("doneimu");
+
+    mpu_.resetFIFO();
 }
 
 // Returns x,y,z acceleration as a struct

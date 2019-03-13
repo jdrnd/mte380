@@ -23,12 +23,17 @@ void init_sensors() {
     rangefinders.run();
     #endif
 
+    IR::init();
+
+    colorsensor.initialize();
+
     read_sensors();
     // The next runs of this task will use the read_sensors callback function
     t_readSensors.setCallback(&read_sensors);
 }
 
 void read_sensors() {
+    DEBUG_PRINT("Read Sensors");
     candleSensor.read();
 
     #ifdef RUN_IMU
@@ -37,9 +42,13 @@ void read_sensors() {
 
     #ifdef RUN_LIDARS
     rangefinders.readAll();
-    DEBUG_PRINT("ranlidar");
     #endif
+
+    IR::read();
+    colorsensor.read_terrain(true);
 
     motors.left->readDistance();
     motors.right->readDistance();
+
+    DEBUG_PRINT("End Read Sensors");
 }
