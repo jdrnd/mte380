@@ -10,6 +10,7 @@ IMU* IMU_Wrapper::primary = new IMU;
 // Sets up and initializes the IMU
 // takes about 500 ms to run
 bool IMU::init() {
+    yaw_offset_ = 0;
     data_ready_ = false;
 
     // Add initial measurement to IMU buffers for filtering
@@ -113,7 +114,7 @@ void IMU::readData() {
     measurements_z_.push(IMU_FILTER_ALPHA * aaWorld.z + (1-IMU_FILTER_ALPHA)*measurements_z_.last());
     accel.z = ((1.0*measurements_z_.last() / 16384.0) * 9.81);
 
-    yaw_.push(IMU_FILTER_ALPHA*(ypr[0] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*yaw_.last());
+    yaw_.push((IMU_FILTER_ALPHA*(ypr[0] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*yaw_.last()) - yaw_offset_);
     orientation.yaw = yaw_.last();
     pitch_.push(IMU_FILTER_ALPHA*(ypr[1] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*pitch_.last());
     orientation.pitch = pitch_.last();
@@ -123,6 +124,10 @@ void IMU::readData() {
     DEBUG_PRINT("doneimu");
 
     mpu_.resetFIFO();
+}
+
+void IMU::zero_yaw() {
+    yaw_offset_ = orientation.yaw;
 }
 
 // Returns x,y,z acceleration as a struct

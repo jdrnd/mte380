@@ -35,6 +35,8 @@ void process_sensors() {
     
     Accel accel = imu->getAccel();
     Orientation ypr = imu->getYPR();
+
+    /*
     PLOTTER_SERIAL.print(colorsensor.r);
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.print(colorsensor.g);

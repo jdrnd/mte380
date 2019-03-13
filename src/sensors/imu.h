@@ -67,6 +67,8 @@ class IMU {
 
         Accel getAccel();
         Orientation getYPR();
+
+        void zero_yaw();
     private:
         CircularBuffer<int16_t, IMU_BUFFER_LEN> measurements_x_;
         CircularBuffer<int16_t, IMU_BUFFER_LEN> measurements_y_;
@@ -75,6 +77,8 @@ class IMU {
         CircularBuffer<int16_t, IMU_BUFFER_LEN> yaw_;
         CircularBuffer<int16_t, IMU_BUFFER_LEN> pitch_;
         CircularBuffer<int16_t, IMU_BUFFER_LEN> roll_;
+
+        uint16_t yaw_offset_;
 
         // class default I2C address is 0x68
         MPU6050 mpu_;

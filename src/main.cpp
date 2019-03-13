@@ -8,7 +8,7 @@
 #include <TaskSchedulerDeclarations.h>
 
 #include "actuators/drive_motors.h"
-#include "actuators/armservos.h"
+#include "actuators/servos.h"
 
 #include "sensors/photosensor.h"
 #include "sensors/imu.h"
@@ -42,29 +42,24 @@ Task t_motorControl(10UL, TASK_FOREVER, &init_motor_control, &taskManager, true)
 extern Servo armservo;
 
 void setup() {
+    init_damper();
+
     Serial.begin(115200);
     Serial3.begin(115200);
-    // pinMode(XBEE_RESET_PIN, OUTPUT);
-    // digitalWrite(XBEE_RESET_PIN, LOW);
-    // delay(1);
-    // digitalWrite(XBEE_RESET_PIN, HIGH);
+    pinMode(XBEE_RESET_PIN, OUTPUT);
+    digitalWrite(XBEE_RESET_PIN, LOW);
+    delay(1);
+    digitalWrite(XBEE_RESET_PIN, HIGH);
 
-    init_sensors();
+    //init_arm_servo();
+    //lower_arm_servo();
+    delay(1);
 
-    armservo.attach(SENSOR_ARM_PIN);
-    init_arm_servo();
-    lower_arm_servo();   
+    lower_damper();
+    delay(1000);
+    raise_damper();
 }
 
 void loop() {
-    //taskManager.execute();
-    
-    motors.setSpeed(50);
-    colorsensor.read_terrain(true);
-    while(colorsensor.curr_terrain == Terrain::WOOD)
-    {
-        colorsensor.read_terrain(rangefinders.shortrange.last_reading);
-        delay(100);
-    }
-    motors.stop();
+    taskManager.execute();
 }

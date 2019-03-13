@@ -16,9 +16,7 @@ void init_motor_control() {
     t_motorControl.setCallback(&motor_control);
 }
 void run_drive_command() {
-    DEBUG_PRINT("here");
     if (!command_running) return;
-    DEBUG_PRINT("here2");
 
     static bool run_init = true;
     static bool run_ramp[5] = {true, true, true, true, true};
@@ -69,10 +67,41 @@ void run_drive_command() {
         command_running = false;
     }
 }
+
+void run_turn_command() {
+    if (!command_running) return;
+
+    static bool run_init = true;
+
+    // 1 is right, -1 is left
+    int8_t direction = (command_value > 0) ? 1 : -1;
+    if (run_init) {
+        imu->zero_yaw();
+        
+        motors.left->setSpeed(50);
+        motors.right->setSpeed(-50);
+        run_init = false;
+    }
+
+
+    if (abs(motors.left->distance) > 17 && abs(motors.right->distance) > 17) {
+        motors.stop();
+        motors.left->resetDistance();
+        motors.right->resetDistance();
+
+        run_init=true;
+        command_running= false;
+    }
+}
+
+
 void run_current_command() {
     switch(current_command) {
         case Command::DRIVE:
             run_drive_command();
+            break;
+        case Command::TURN:
+            run_turn_command();
             break;
         default:
             break;
@@ -93,7 +122,7 @@ void motor_control() {
     if(!done) {
         current_command = Command::DRIVE;
         command_value = 100;
-        command_running = true;
+        //command_running = true;
         done = true;
     }
 
