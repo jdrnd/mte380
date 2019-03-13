@@ -89,9 +89,10 @@ void motor_control() {
     DEBUG_PRINT(motors.right->distance)
 
     static bool done = false;
+    
     if(!done) {
         current_command = Command::DRIVE;
-        command_value = -100;
+        command_value = 100;
         command_running = true;
         done = true;
     }

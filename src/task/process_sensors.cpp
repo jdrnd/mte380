@@ -1,7 +1,5 @@
 #include "process_sensors.h"
 
-static Accel accel;
-static Orientation ypr;
 
 static Plotter plotter;
 
@@ -13,6 +11,7 @@ void init_process_sensors() {
         return;
     #endif
 
+    /*
     plotter.Begin();
     plotter.AddTimeGraph("Accelerometer", 100, "X", accel.x, "Y", accel.y, "Z", accel.z);
     plotter.AddTimeGraph("Gyro", 100, "Yaw", ypr.yaw, "Pitch", ypr.pitch, "Roll", ypr.roll);
@@ -26,23 +25,37 @@ void init_process_sensors() {
     );
     plotter.AddTimeGraph("", 100, "Light Sensor", candleSensor.last_reading);
     plotter.AddTimeGraph("Encoder distances", 100, "Left", motors.left->distance, "Right", motors.right->distance);
+    plotter.AddTimeGraph("Colors", 100, "Red", colorsensor.r, "Blue", colorsensor.b, "Green", colorsensor.g);
+    */
 
     t_processSensors.setCallback(&process_sensors);
 }
 void process_sensors() {
-    Accel currentAccel = imu->getAccel();
-    accel = {
-        currentAccel.x,
-        currentAccel.y,
-        currentAccel.z
-    };
-    Orientation orient = imu->getYPR();
-    ypr = {
-        orient.yaw,
-        orient.pitch,
-        orient.roll
-    };
+    DEBUG_PRINT("Process Sensors")
+    
+    Accel accel = imu->getAccel();
+    Orientation ypr = imu->getYPR();
+
+    colorsensor.update_terrain(rangefinders.shortrange.last_reading);
+
+    PLOTTER_SERIAL.print(colorsensor.r);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(colorsensor.g);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(colorsensor.b);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(rangefinders.shortrange.last_reading);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.println((uint8_t)colorsensor.curr_terrain);
+
+    /*
+    PLOTTER_SERIAL.print(accel.x);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(accel.y);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.println(accel.z);
+    */
     
     // Implicitly accesses varaibles set in the init step
-    plotter.Plot();
+    //plotter.Plot();
 }

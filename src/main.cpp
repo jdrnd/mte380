@@ -8,6 +8,7 @@
 #include <TaskSchedulerDeclarations.h>
 
 #include "actuators/drive_motors.h"
+#include "actuators/servos.h"
 
 #include "sensors/photosensor.h"
 #include "sensors/imu.h"
@@ -21,7 +22,7 @@
 Motors motors;
 Photosensor candleSensor;
 Rangefinders rangefinders;
-
+ColorSensor colorsensor;
 
 Scheduler taskManager;
 
@@ -38,16 +39,22 @@ Task t_motorControl(10UL, TASK_FOREVER, &init_motor_control, &taskManager, true)
 // Reset -> digital pin 6
 #define XBEE_RESET_PIN 6
 
+extern Servo armservo;
+
 void setup() {
+    armservo.attach(SENSOR_ARM_PIN);
+
     Serial.begin(115200);
     Serial3.begin(115200);
     pinMode(XBEE_RESET_PIN, OUTPUT);
     digitalWrite(XBEE_RESET_PIN, LOW);
     delay(1);
     digitalWrite(XBEE_RESET_PIN, HIGH);
+
+    init_arm_servo();
+    lower_arm_servo();
 }
 
 void loop() {
     taskManager.execute();
 }
-

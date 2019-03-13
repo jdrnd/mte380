@@ -19,6 +19,7 @@ extern Task t_processSensors;
 extern Motors motors;
 extern Rangefinders rangefinders;
 extern Photosensor candleSensor;
+extern ColorSensor colorsensor;
 //extern IMU* imu;
 
 void init_process_sensors();
