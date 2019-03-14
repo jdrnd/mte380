@@ -56,8 +56,8 @@
 #define COLOR_SAND_B                    2536
 #define COLOR_SAND_BDEV                 121
  
+#define WATER_MIN_HEIGHT 60
 
- #define WATER_MIN_HEIGHT 60
 enum freqGainLevel : uint8_t {
     FREQ_GAIN_LOW                               = 3,
     FREQ_GAIN_MED                               = 2,
@@ -67,10 +67,10 @@ enum freqGainLevel : uint8_t {
 // 0 -> grav, 1 -> water, 2 -> wood, 3-> sand
 enum class Terrain: uint8_t {
     GRAVEL = 0,
-    WATER = 1,
-    WOOD = 2,
-    SAND = 3,
-    ERROR = 5
+    WOOD = 1,
+    SAND = 2,
+    WATER = 3,
+    ERROR = 5,
 }; 
 
 class ColorSensor{
@@ -88,19 +88,18 @@ class ColorSensor{
         uint16_t g;
 
         // Returns a value 0-4 based on the terrain type, 5 if undefined
-        void read_terrain(bool debug = false);
+        void read_terrain(uint16_t distance, bool debug = false);
         Terrain curr_terrain;
-        void update_terrain(uint16_t distance);
     private:
         freqGainLevel freq_gain_;
         uint16_t delay_time_;
 
-        const int32_t AVG_R[4] = {COLOR_GRAV_R, COLOR_WAT_R, COLOR_WOOD_R, COLOR_SAND_R};
-        const int32_t AVG_G[4] = {COLOR_GRAV_G, COLOR_WAT_G, COLOR_WOOD_G, COLOR_SAND_G};
-        const int32_t AVG_B[4] = {COLOR_GRAV_B, COLOR_WAT_B, COLOR_WOOD_B, COLOR_SAND_B};
+        const int32_t AVG_R[3] = {COLOR_GRAV_R, COLOR_WOOD_R, COLOR_SAND_R};
+        const int32_t AVG_G[3] = {COLOR_GRAV_G, COLOR_WOOD_G, COLOR_SAND_G};
+        const int32_t AVG_B[3] = {COLOR_GRAV_B, COLOR_WOOD_B, COLOR_SAND_B};
         // the hand wavey absolute error allowed for the innitial algorithm
         // will need more data to tune
-        const int32_t dev[4] = {150000, 150000, 150000, 300000};
+        const int32_t dev[3] = {150000, 150000, 300000};
 
         
 };

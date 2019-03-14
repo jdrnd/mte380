@@ -35,9 +35,6 @@ void process_sensors() {
     
     Accel accel = imu->getAccel();
     Orientation ypr = imu->getYPR();
-
-    colorsensor.update_terrain(rangefinders.shortrange.last_reading);
-
     PLOTTER_SERIAL.print(colorsensor.r);
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.print(colorsensor.g);
