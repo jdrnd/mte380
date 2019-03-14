@@ -86,16 +86,16 @@ uint16_t ColorSensor::read_blue()
 
 // returns the current terrain based on the sensor data, and the experimental averages and STDEVs
 // 0 -> grav, 1 -> water, 2 -> wood, 3-> sand
-void ColorSensor::read_terrain(bool debug = false)
+void ColorSensor::read_terrain(uint16_t distance, bool debug = false)
 {
     r = read_red();
     b = read_blue();
     g = read_green(); 
     uint8_t min_index = 0;
 
-    int32_t error[4] = {};
+    int32_t error[3] = {};
     
-    for(int i = 0; i < 4; i++)
+    for(int i = 0; i < 3; i++)
     {
         //calculate the Mag^2 of the 3D vector error of the RGB value
         error[i] = (r - AVG_R[i])*(r - AVG_R[i]) + (g - AVG_G[i])*(g - AVG_G[i]) + (b - AVG_B[i])*(b - AVG_B[i]);
@@ -113,10 +113,10 @@ void ColorSensor::read_terrain(bool debug = false)
         DEBUG_PRINT(b);
         
         // the print order is gravel, water, wood, sand
-        for( int j = 0; j<4; j++)
+        for( int j = 0; j<3; j++)
         {
-            //DEBUG_PRINT(error[j]);
-            //DEBUG_PRINT(",");
+            DEBUG_PRINT(error[j]);
+            DEBUG_PRINT(",");
         }
         DEBUG_PRINT();
     }
@@ -128,14 +128,16 @@ void ColorSensor::read_terrain(bool debug = false)
     {
         curr_terrain = Terrain::ERROR;
     }
+
+    //Update the terrain based on the distance reading
+
+    //edge of a tile if the distance is too large for wood
+    if(distance > WATER_MIN_HEIGHT)
+    {
+        curr_terrain = Terrain::WATER;
+    }
     DEBUG_PRINT((uint8_t)curr_terrain);
 
 }
 
-// Updates our terrain depending on the shortrange lidar reading we get
-void ColorSensor::update_terrain(uint16_t distance) {
-    if (distance > WATER_MIN_HEIGHT) {
-        curr_terrain = Terrain::WATER;
-    }
-}
 //PRIVATE__________________________________________________________________________________________
