@@ -66,6 +66,13 @@ void run_drive_command() {
         speed_command = 0;
         command_running = false;
     }
+
+    /*
+    if (magnetics.magnetDetected) {
+        motors.stop();
+        command_running = false;
+    }
+    */
 }
 
 void run_turn_command() {

@@ -11,9 +11,12 @@
 #define MOTOR_PROPORTIONAL_CONTSTANT 5
 
 #include "sensors/imu.h"
+#include "sensors/magnetic.h"
 
 extern Task t_motorControl;
 extern Motors motors;
+
+extern Magnetics magnetics;
 
 enum class Command: uint8_t {
     DRIVE,

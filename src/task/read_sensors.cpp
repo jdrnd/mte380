@@ -45,6 +45,9 @@ void read_sensors() {
     #endif
 
     IR::read();
+    magnetics.detectMagnet();
+
+    detectFlame();
     colorsensor.read_terrain(true);
 
     motors.left->readDistance();

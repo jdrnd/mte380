@@ -36,6 +36,10 @@ void process_sensors() {
     Accel accel = imu->getAccel();
     Orientation ypr = imu->getYPR();
 
+    //magnetics.logReadings();
+    if (flameDetected) {
+        DEBUG_PRINT("FLAME");
+    }
     /*
     PLOTTER_SERIAL.print(colorsensor.r);
     PLOTTER_SERIAL.print(",");
