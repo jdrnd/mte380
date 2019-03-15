@@ -105,6 +105,9 @@ class PathFinder {
     /* Clears planning info in the map. (does not clear terrain)*/
     void clearPlan();
 
+    // find the tile with the lowest f_cost in the open set
+    void findNext(uint8_t & best_x, uint8_t & best_y);
+
     public:
         void init();
         // Generates a random terrain value
