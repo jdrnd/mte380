@@ -48,6 +48,21 @@ void PathFinder::setBotPosition(uint8_t x, uint8_t y, uint8_t r) {
     bot_set = true;
 }
 
+void PathFinder::findNext(uint8_t & best_x, uint8_t & best_y) {
+    // If needed optimize this function to prioritize the lowest h_cost as well
+    best_x = 0;
+    best_y = 0;
+    uint16_t best_f = INF_COST;
+    // search the map
+    for(size_t i = 0; i < TILE_ROWS; i++)
+        for(size_t j = 0; j < TILE_COLS; j++)
+            if (map[j][i].inOpen && map[j][i].f_cost < best_f) {
+                best_f = map[j][i].f_cost;
+                best_x = i;
+                best_y = j;
+            }
+}
+
 bool PathFinder::planPath(int8_t unknown_cost) {
     if (!bot_set || !target_set) {
         Serial.println("Set bot and target before planning! ");
@@ -82,23 +97,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
     /* iterate through the algorithm until a path is found or there are too many
         steps */
     while(count < MAX_ALGORITHM_STEPS) {
-        // find the tile with the lowest f_cost in the open set
-        // TODO @Jordan Slater make this into a private function
-        /* TODO @Jordan Slater make this use function prioritize the lower 
-            h_cost tiles first */
-        uint8_t best_x = 0;
-        uint8_t best_y = 0;
-        uint16_t best_f = INF_COST;
-        // search the map
-        for(size_t i = 0; i < TILE_ROWS; i++)
-            for(size_t j = 0; j < TILE_COLS; j++)
-                if (map[j][i].inOpen && map[j][i].f_cost < best_f) {
-                    best_f = map[j][i].f_cost;
-                    best_x = i;
-                    best_y = j;
-                }
-        x = best_x;
-        y = best_y;
+        findNext(x,y);
 
         // we are going to evaluate the tile so it is now in the closed set
         map[y][x].inOpen = false;
