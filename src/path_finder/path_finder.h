@@ -11,14 +11,13 @@
 #define WOOD 1
 #define GRAVEL 2
 #define SAND 3
-#define DISCOVERED 4
 #define UNKNOWN 5
+#define ERROR_TERRAIN 20
 
 #define TILE_COST 10
 #define TURN_COST 6 // (approximately 0.524 of the TILE_COST)
 #define SAND_COST 5 // in addition to the base tile cost
 #define GRAVEL_COST 2 // again in addition
-#define UNKNOWN_COST 1
 
 /* NOTE: all rotation and parent directions are encoded as 0,1,2,3
     the integer corresponds to that many multiples of 90 degrees counter 
@@ -103,11 +102,11 @@ class PathFinder {
     /* Reads the parrent values of the map to create a path from bot to target*/
     bool createPath();
 
+    /* Clears planning info in the map. (does not clear terrain)*/
+    void clearPlan();
+
     public:
         void init();
-        void printMapTerrain();
-        void printMapParents();
-        void printMapFCosts();
         // Generates a random terrain value
         uint8_t getRandomTerrain();
         // Sets the starting position of the bot
@@ -117,8 +116,9 @@ class PathFinder {
         /* Uses A* path finding to plan a path from the bot's location to the 
             target x and target y. Populates the parrent values that are used by
             createPath() to actually create the path. Returns true if the target
-            was reached. */
-        bool planPath();
+            was reached. unknown_cost is the cost of moving to an unknown tile. 
+            */
+        bool planPath(int8_t unknown_cost = 0);
         /* Retrieves the path array if it contains valid information. 
             success is true if the path array was actually returned otherwise 
             the pointer is null. steps is the number of entries in the path 
@@ -128,6 +128,13 @@ class PathFinder {
                 -1: turn 90 degrees right, 
                 1: turn 90 degrees left. */
         int8_t* retrievePlan(bool & success, uint8_t & steps);
+
+        bool setTerrain(uint8_t x, uint8_t y, uint8_t terrain);
+        uint8_t getTerrain(uint8_t x, uint8_t y);
+        
+        void printMapTerrain();
+        void printMapParents();
+        void printMapFCosts();
 }; // class PathFinder
 
 #endif // PATH_FINDER_H
