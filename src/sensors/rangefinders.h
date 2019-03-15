@@ -7,10 +7,10 @@
 
 #include "common.h"
 
-#define FRONT_LIDAR_PIN 42
-#define BACK_LIDAR_PIN 43
-#define LEFT_LIDAR_PIN 44
-#define RIGHT_LIDAR_PIN 45
+#define FRONT_LIDAR_PIN 45
+#define BACK_LIDAR_PIN 44
+#define LEFT_LIDAR_PIN 43
+#define RIGHT_LIDAR_PIN 42
 #define CLOSE_LIDAR_PIN 46
 
 #define FRONT_LIDAR_ADDRESS 0x30
@@ -75,6 +75,6 @@ class Rangefinders
         Rangefinder<VL53L1X> back;
         Rangefinder<VL53L1X> left;
         Rangefinder<VL53L1X> right;
-        Rangefinder<VL6180X> short;
+        Rangefinder<VL6180X> shortrange;
 };
 #endif

@@ -261,7 +261,7 @@ const unsigned char dmpMemory[MPU6050_DMP_CODE_SIZE] PROGMEM = {
 };
 
 #ifndef MPU6050_DMP_FIFO_RATE_DIVISOR 
-#define MPU6050_DMP_FIFO_RATE_DIVISOR 0x01 // Can be modified down to 0x07 = 25Hz (200 /(1+X))
+#define MPU6050_DMP_FIFO_RATE_DIVISOR 0x04 // Can be modified down to 0x07 = 25Hz (200 /(1+X))
 #endif
 
 // thanks to Noah Zerkin for piecing this stuff together!

@@ -32,7 +32,7 @@ THE SOFTWARE.
 */
 #define MPU6050_INCLUDE_DMP_MOTIONAPPS20
 
-//#define DEBUG 
+#define DEBUG 
 
 #ifdef DEBUG
     #define DEBUG_PRINT(x) Serial.print(x)

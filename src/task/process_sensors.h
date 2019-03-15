@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-#include "actuators/motors.h"
+#include "actuators/drive_motors.h"
 
 #include "sensors/colorsensor.h"
 #include "sensors/magnetic.h"
@@ -19,6 +19,10 @@ extern Task t_processSensors;
 extern Motors motors;
 extern Rangefinders rangefinders;
 extern Photosensor candleSensor;
+extern ColorSensor colorsensor;
+extern Magnetics magnetics;
+extern bool flameDetected;
+
 //extern IMU* imu;
 
 void init_process_sensors();
