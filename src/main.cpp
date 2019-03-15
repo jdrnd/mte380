@@ -12,6 +12,10 @@
 #include "sensors/photosensor.h"
 #include "sensors/imu.h"
 
+#include "task/read_sensors.h"
+#include "task/process_sensors.h"
+#include "task/motor_control.h"
+
 #include "common.h"
 
 Motors motors;
