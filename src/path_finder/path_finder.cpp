@@ -11,9 +11,15 @@ void PathFinder::init() {
     randomSeed(analogRead(0));
 
     // Initialize the map
+    clearPlan();
+    for(size_t i = 0; i < TILE_ROWS; i++)
+        for(size_t j = 0; j < TILE_COLS; j++)
+            map[i][j].terrain = UNKNOWN; //getRandomTerrain();
+}
+
+void PathFinder::clearPlan() {
     for(size_t i = 0; i < TILE_ROWS; i++)
         for(size_t j = 0; j < TILE_COLS; j++) {
-            map[i][j].terrain = UNKNOWN; //getRandomTerrain();
             map[i][j].f_cost = INF_COST;
             map[i][j].g_cost = INF_COST;
             map[i][j].h_cost = INF_COST;
@@ -35,19 +41,19 @@ void PathFinder::setBotPosition(uint8_t x, uint8_t y, uint8_t r) {
     bot_x = x;
     bot_y = y;
     bot_r = r;
-    // if the bot has never been in the map we know that it is being placed on wood
+    // if the bot has never been in the map we know that it is placed on wood
     if (!bot_set)
         map[bot_y][bot_x].terrain = WOOD;
     planned = false;
     bot_set = true;
 }
 
-bool PathFinder::planPath()
-{
+bool PathFinder::planPath(int8_t unknown_cost) {
     if (!bot_set || !target_set) {
         Serial.println("Set bot and target before planning! ");
         return false;
     }
+    clearPlan();
     planned = false;
     /* the tile (x,y) is the current tile that is being evaluated in the 
         algorithm, start at the starting position of the bot */
@@ -123,7 +129,7 @@ bool PathFinder::planPath()
                         else if (map[ny][nx].terrain == SAND)
                             h_cost+= SAND_COST;
                         else if (map[ny][nx].terrain == UNKNOWN)
-                            h_cost+= UNKNOWN_COST;
+                            h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
                         g_cost = TILE_COST + map[y][x].g_cost;
                         // if the bot has to turn
@@ -232,6 +238,19 @@ int8_t* PathFinder::retrievePlan(bool & success, uint8_t & steps) {
 
 uint8_t PathFinder::getRandomTerrain() {
     return TILE_PROBABILITY[(uint8_t)(random(0,36))];
+}
+
+bool PathFinder::setTerrain(uint8_t x, uint8_t y, uint8_t terrain) {
+    if (!(x < TILE_COLS && y < TILE_ROWS))
+        return false;
+    map[y][x].terrain = terrain;
+    return true;
+}
+
+uint8_t PathFinder::getTerrain(uint8_t x, uint8_t y) {
+    if (!(x < TILE_COLS && y < TILE_ROWS))
+        return ERROR_TERRAIN;
+    return map[y][x].terrain;
 }
 
 void PathFinder::printMapTerrain() {
