@@ -22,3 +22,5 @@ void raise_arm_servo();
 void init_damper();
 void lower_damper();
 void raise_damper();
+
+#endif ARMSERVO_H
