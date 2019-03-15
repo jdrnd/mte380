@@ -10,11 +10,15 @@ void init_arm_servo() {
 }
 
 void lower_arm_servo() {
+    armservo.attach(SENSOR_ARM_PIN);
     armservo.write(ARM_ZERO_POSITION);
+    //pinMode(SENSOR_ARM_PIN, INPUT);
 }
 
 void raise_arm_servo() {
+    armservo.attach(SENSOR_ARM_PIN);
     armservo.write(ARM_RAISED_POSITION);
+    //pinMode(SENSOR_ARM_PIN, INPUT);
 }
 
 void init_damper() {

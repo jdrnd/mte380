@@ -11,6 +11,7 @@
 #include "sensors/rangefinders.h"
 #include "sensors/photosensor.h"
 #include "sensors/ir.h"
+#include "sensors/flame.h"
 
 #include "actuators/drive_motors.h"
 
@@ -19,6 +20,7 @@ extern Rangefinders rangefinders;
 extern Photosensor candleSensor;
 extern Motors motors;
 extern ColorSensor colorsensor;
+extern Magnetics magnetics;
 
 extern Task t_readSensors;
 

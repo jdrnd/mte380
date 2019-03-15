@@ -20,6 +20,9 @@ extern Motors motors;
 extern Rangefinders rangefinders;
 extern Photosensor candleSensor;
 extern ColorSensor colorsensor;
+extern Magnetics magnetics;
+extern bool flameDetected;
+
 //extern IMU* imu;
 
 void init_process_sensors();

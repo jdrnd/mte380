@@ -23,6 +23,7 @@ Motors motors;
 Photosensor candleSensor;
 Rangefinders rangefinders;
 ColorSensor colorsensor;
+Magnetics magnetics;
 
 Scheduler taskManager;
 
@@ -53,11 +54,9 @@ void setup() {
 
     //init_arm_servo();
     //lower_arm_servo();
-    delay(1);
-
-    lower_damper();
-    delay(1000);
-    raise_damper();
+    //delay(2000);
+    //raise_arm_servo();  
+    delay(2000);
 }
 
 void loop() {
