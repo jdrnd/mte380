@@ -17,6 +17,7 @@
 #include "task/process_sensors.h"
 #include "task/motor_control.h"
 #include "task/mission_control.h"
+#include "task/localization.h"
 
 #include "sensors/gyro.h"
 
@@ -38,6 +39,7 @@ Scheduler taskManager;
 
 // Times in milliseconds
 Task t_readSensors(100UL, TASK_FOREVER, &init_sensors, &taskManager, true);
+Task t_localization(10UL, TASK_FOREVER, &init_localization, &taskManager, true);
 Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
 Task t_motorControl(10UL, TASK_FOREVER, &MotorControl::init_motor_control, &taskManager, true);
 Task t_missionControl(100UL, TASK_FOREVER, &MissionControl::init, &taskManager, true);
