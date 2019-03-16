@@ -12,6 +12,7 @@
 #include "sensors/photosensor.h"
 #include "sensors/ir.h"
 #include "sensors/flame.h"
+#include "sensors/gyro.h"
 
 #include "actuators/drive_motors.h"
 
@@ -21,6 +22,7 @@ extern Photosensor candleSensor;
 extern Motors motors;
 extern ColorSensor colorsensor;
 extern Magnetics magnetics;
+extern Gyro gyro;
 
 extern Task t_readSensors;
 

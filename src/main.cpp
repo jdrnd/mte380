@@ -30,15 +30,15 @@ int16_t confidence[36];
 
 ColorSensor colorsensor;
 Magnetics magnetics;
+Gyro gyro;
 
 Scheduler taskManager;
 
-Gyro gyro;
 
 // Times in milliseconds
-Task t_readSensors(100UL, TASK_FOREVER, &init_sensors, &taskManager, true);
-Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
-Task t_motorControl(10UL, TASK_FOREVER, &init_motor_control, &taskManager, true);
+Task t_readSensors(50UL, TASK_FOREVER, &init_sensors, &taskManager, true);
+Task t_processSensors(50UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
+Task t_motorControl(20UL, TASK_FOREVER, &init_motor_control, &taskManager, true);
 
 // XBEE
 // 3.3 V
@@ -46,13 +46,12 @@ Task t_motorControl(10UL, TASK_FOREVER, &init_motor_control, &taskManager, true)
 // DOUT -> Serial3 Rx
 // DIN -> Serial3 Tx
 // Reset -> digital pin 6
-#define XBEE_RESET_PIN 6
+ #define XBEE_RESET_PIN 6
 
 extern Servo armservo;
 
-/*
 void setup() {
-    init_damper();
+    //init_damper();
 
     Serial.begin(115200);
     Serial3.begin(115200);
@@ -67,18 +66,8 @@ void setup() {
     //raise_arm_servo();  
     delay(2000);
 }
-*/
 
-
-void setup(){
-    gyro.init();
-}
 
 void loop() {
-    //taskManager.execute();
-    
-    gyro.read();
-    Serial.print(", "); Serial.print(gyro.roll);
-    Serial.print(", "); Serial.print(gyro.pitch);
-    Serial.print(", "); Serial.println(gyro.yaw);
+    taskManager.execute();
 }

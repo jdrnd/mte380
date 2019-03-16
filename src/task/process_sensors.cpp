@@ -32,7 +32,7 @@ void init_process_sensors() {
 }
 void process_sensors() {
     DEBUG_PRINT("Process Sensors")
-    
+
     Accel accel = imu->getAccel();
     Orientation ypr = imu->getYPR();
 
@@ -40,24 +40,29 @@ void process_sensors() {
     if (flameDetected) {
         DEBUG_PRINT("FLAME");
     }
-    /*
-    PLOTTER_SERIAL.print(colorsensor.r);
-    PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.print(colorsensor.g);
-    PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.print(colorsensor.b);
-    PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.print(rangefinders.shortrange.last_reading);
-    PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.println((uint8_t)colorsensor.curr_terrain);
 
-    /*
-    PLOTTER_SERIAL.print(accel.x);
+/*
+    PLOTTER_SERIAL.print(gyro.roll);
+    PLOTTER_SERIAL.print(", "); 
+    PLOTTER_SERIAL.print(gyro.pitch); 
+    PLOTTER_SERIAL.print(", ");
+    PLOTTER_SERIAL.println(gyro.yaw);
+*/
+    // PLOTTER_SERIAL.print(colorsensor.r);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.print(colorsensor.g);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.print(colorsensor.b);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.print(rangefinders.shortrange.last_reading);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.println((uint8_t)colorsensor.curr_terrain);
+
+    PLOTTER_SERIAL.print(imu->orientation.yaw);
     PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.print(accel.y);
+    PLOTTER_SERIAL.print(imu->orientation.pitch);
     PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.println(accel.z);
-    */
+    PLOTTER_SERIAL.println(imu->orientation.roll);
     
     // Implicitly accesses varaibles set in the init step
     //plotter.Plot();
