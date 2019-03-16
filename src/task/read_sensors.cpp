@@ -24,6 +24,7 @@ void init_sensors() {
     #endif
 
     IR::init();
+    //gyro.init();
 
     colorsensor.initialize();
 
@@ -48,6 +49,11 @@ void read_sensors() {
     magnetics.detectMagnet();
 
     detectFlame();
+
+    #ifdef RUN_GYRO2
+    gyro.read();
+    #endif
+    
     colorsensor.read_terrain(true);
 
     motors.left->readDistance();
