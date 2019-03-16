@@ -1,13 +1,18 @@
 #include "motor_control.h"
 
 // this task = t_motorControl
+namespace MotorControl{
 
+etl::queue<Command, 255, etl::memory_model::MEMORY_MODEL_SMALL> command_queue;
+Command current_command;
 
-static Command current_command;
-static int16_t command_value;
-static bool command_running = false;
+void stopMotors() {
+    current_command.type = Command_t::STOP;
+    current_command.status = CommandStatus::WAITING;
+}
 
 void init_motor_control() {
+    current_command.type = Command_t::NONE;
     DEBUG_PRINT("Init motors");
 
     motors.left->init(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_ENABLE_PIN, LEFT_MOTOR_SENSOR_A_PIN, LEFT_MOTOR_SENSOR_B_PIN);
@@ -16,7 +21,7 @@ void init_motor_control() {
     t_motorControl.setCallback(&motor_control);
 }
 void run_drive_command() {
-    if (!command_running) return;
+    if (current_command.status == CommandStatus::DONE) return;
 
     static bool run_init = true;
     static bool run_ramp[5] = {true, true, true, true, true};
@@ -31,8 +36,10 @@ void run_drive_command() {
 
     double leftD = motors.left->getDistance();
     double rightD = motors.right->getDistance();
-    int8_t direction = (command_value > 0) ? 1 : -1;
+    int8_t direction = (current_command.value > 0) ? 1 : -1;
     DEBUG_PRINT(direction);
+
+    uint16_t command_value = current_command.value;
 
     if (speed_command == 0) {
         speed_command = 25*direction;
@@ -64,7 +71,7 @@ void run_drive_command() {
         run_init = true;
         memset(run_ramp,true,sizeof(bool)*5);
         speed_command = 0;
-        command_running = false;
+        current_command.status = CommandStatus::DONE;
     }
 
     /*
@@ -76,12 +83,14 @@ void run_drive_command() {
 }
 
 void run_turn_command() {
-    if (!command_running) return;
+    if (current_command.status == CommandStatus::DONE) return;
 
     static bool run_init = true;
 
+    uint16_t command_value = current_command.value;
+
     // 1 is right, -1 is left
-    int8_t direction = (command_value > 0) ? 1 : -1;
+    int8_t direction = (current_command.value > 0) ? 1 : -1;
     if (run_init) {
         imu->zero_yaw();
         
@@ -97,18 +106,34 @@ void run_turn_command() {
         motors.right->resetDistance();
 
         run_init=true;
-        command_running= false;
+        current_command.status = CommandStatus::DONE;
     }
+}
+
+void run_stop_command() {
+    if (current_command.status == CommandStatus::DONE) return;
+
+    motors.stop();
+    current_command.status = CommandStatus::DONE;
 }
 
 
 void run_current_command() {
-    switch(current_command) {
-        case Command::DRIVE:
+    if (current_command.status == CommandStatus::DONE) {
+        if (!command_queue.empty()) {
+            command_queue.pop_into(current_command);
+            DEBUG_PRINT("Command recieved");
+        }
+    }
+    switch(current_command.type) {
+        case Command_t::DRIVE:
             run_drive_command();
             break;
-        case Command::TURN:
+        case Command_t::TURN:
             run_turn_command();
+            break;
+        case Command_t::STOP:
+            run_stop_command();
             break;
         default:
             break;
@@ -125,13 +150,6 @@ void motor_control() {
     DEBUG_PRINT(motors.right->distance)
 
     static bool done = false;
-    
-    if(!done) {
-        current_command = Command::DRIVE;
-        command_value = 100;
-        //command_running = true;
-        done = true;
-    }
 
     run_current_command();
 
@@ -140,4 +158,13 @@ void motor_control() {
 
     count++;
 }
+
+void send_command(Command_t type, int16_t value) {
+    DEBUG_PRINT("Sending command");
+    
+    Command newCommand = Command{type, value, CommandStatus::WAITING};
+    command_queue.push(newCommand);
+}
+
+};
 

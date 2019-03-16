@@ -40,25 +40,19 @@ void process_sensors() {
     if (flameDetected) {
         DEBUG_PRINT("FLAME");
     }
+    
+    // PLOTTER_SERIAL.print(rangefinders.front.last_reading);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.print(rangefinders.back.last_reading);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.print(rangefinders.left.last_reading);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.print(rangefinders.right.last_reading);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.println(rangefinders.shortrange.last_reading);
 
 /*
-    PLOTTER_SERIAL.print(gyro.roll);
-    PLOTTER_SERIAL.print(", "); 
-    PLOTTER_SERIAL.print(gyro.pitch); 
-    PLOTTER_SERIAL.print(", ");
-    PLOTTER_SERIAL.println(gyro.yaw);
-*/
-    // PLOTTER_SERIAL.print(colorsensor.r);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.print(colorsensor.g);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.print(colorsensor.b);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.print(rangefinders.shortrange.last_reading);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.println((uint8_t)colorsensor.curr_terrain);
-
-    PLOTTER_SERIAL.print(imu->orientation.yaw);
+    PLOTTER_SERIAL.print(accel.x);
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.print(imu->orientation.pitch);
     PLOTTER_SERIAL.print(",");

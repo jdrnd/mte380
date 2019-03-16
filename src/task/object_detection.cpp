@@ -50,7 +50,7 @@ void scan_objects_lin(uint16_t heading, uint16_t X, uint16_t Y){
 				//check that the next two values are also a significant change to avoid noise
 				if(abs(R[3]-R[1]) > THRESHOLD && abs(R[3]-R[0]) > THRESHOLD)
 				{
-					locate_coord_lin(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
+					//locate_coord_lin(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
 				}
 			}
 		}
@@ -61,7 +61,7 @@ void scan_objects_lin(uint16_t heading, uint16_t X, uint16_t Y){
 				//check that the next two values are also a significant change to avoid noise
 				if(abs(L[3]-L[1]) > THRESHOLD && abs(L[3]-L[0]) > THRESHOLD)
 				{
-					locate_coord_lin(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
+					//locate_coord_lin(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
 				}
 			}
 		}
@@ -93,7 +93,7 @@ void scan_objects_rot(uint16_t heading, uint16_t X, uint16_t Y)
 				//check that the next two values are also a significant change to avoid noise
 				if(abs(R[3]-R[1]) > THRESHOLD && abs(R[3]-R[0]) > THRESHOLD)
 				{
-					locate_coord_rot(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
+					//locate_coord_rot(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
 				}
 			}
         }
@@ -105,7 +105,7 @@ void scan_objects_rot(uint16_t heading, uint16_t X, uint16_t Y)
 				//check that the next two values are also a significant change to avoid noise
 				if(abs(L[3]-L[1]) > THRESHOLD && abs(L[3]-L[0]) > THRESHOLD)
 				{
-					locate_coord_rot(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
+					//locate_coord_rot(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
 				}
 			}
         }
@@ -117,7 +117,7 @@ void scan_objects_rot(uint16_t heading, uint16_t X, uint16_t Y)
 				//check that the next two values are also a significant change to avoid noise
 				if(abs(F[3]-F[1]) > THRESHOLD && abs(F[3]-F[0]) > THRESHOLD)
 				{
-					locate_coord_rot(heading, LIDAR_RIGHT, min(F[3], F[2]) + FRONT_LIDAR_OFFSET, X, Y);
+					//locate_coord_rot(heading, LIDAR_RIGHT, min(F[3], F[2]) + FRONT_LIDAR_OFFSET, X, Y);
 				}
 			}
         }
@@ -129,7 +129,7 @@ void scan_objects_rot(uint16_t heading, uint16_t X, uint16_t Y)
 				//check that the next two values are also a significant change to avoid noise
 				if(abs(B[3]-B[1]) > THRESHOLD && abs(B[3]-B[0]) > THRESHOLD)
 				{
-					locate_coord_rot(heading, LIDAR_RIGHT, min(B[3], B[2]) + BACK_LIDAR_OFFSET, X, Y);
+					//locate_coord_rot(heading, LIDAR_RIGHT, min(B[3], B[2]) + BACK_LIDAR_OFFSET, X, Y);
 				}
 			}
         }
