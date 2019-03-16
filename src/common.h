@@ -12,6 +12,10 @@
 
 #define LOG_MOTOR_CONTROL
 
+extern float theta_x;
+extern float theta_y;
+extern float theta_z;
+
 // This must be set in the platformio file as well
 #define PLOTTER_SERIAL Serial3
 
