@@ -4,7 +4,7 @@
 #include <Plotter.h>
 
 // Use this include because the author of the library was dumb
-// and put code in TaskScheduler.h so we get duplicated symbols
+// and put C++ code in TaskScheduler.h so we get duplicated symbols
 #include <TaskSchedulerDeclarations.h>
 
 #include "actuators/drive_motors.h"
@@ -16,6 +16,7 @@
 #include "task/read_sensors.h"
 #include "task/process_sensors.h"
 #include "task/motor_control.h"
+#include "task/mission_control.h"
 
 #include "sensors/gyro.h"
 
@@ -36,10 +37,10 @@ Scheduler taskManager;
 
 
 // Times in milliseconds
-Task t_readSensors(50UL, TASK_FOREVER, &init_sensors, &taskManager, true);
-Task t_processSensors(50UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
-Task t_motorControl(20UL, TASK_FOREVER, &init_motor_control, &taskManager, true);
-
+Task t_readSensors(100UL, TASK_FOREVER, &init_sensors, &taskManager, true);
+Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
+Task t_motorControl(10UL, TASK_FOREVER, &MotorControl::init_motor_control, &taskManager, true);
+Task t_missionControl(100UL, TASK_FOREVER, &MissionControl::init, &taskManager, true);
 // XBEE
 // 3.3 V
 // GND

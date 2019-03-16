@@ -4,11 +4,15 @@
 /*
     Runtime config file options
 */
+#include "etl_profile.h"
+#include "ecl_user.h"
+#include <ArduinoSTL.h>
+
 
 #define RUN_LOGGING
 
 #define RUN_LIDARS
-#define RUN_IMU
+//#define RUN_IMU
 
 //#define LOG_MOTOR_CONTROL
 

@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <TaskSchedulerDeclarations.h>
+#include <math.h>
 
 #include "sensors/rangefinders.h"
 
