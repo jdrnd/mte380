@@ -1,5 +1,5 @@
-#ifndef ARMSERVO_H
-#define ARMSERVO_H
+#ifndef SERVO_H
+#define SERVO_H
 
 #include <Arduino.h>
 #include <Servo.h>
@@ -23,4 +23,4 @@ void init_damper();
 void lower_damper();
 void raise_damper();
 
-#endif ARMSERVO_H
+#endif SERVO_H
