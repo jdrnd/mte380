@@ -44,6 +44,7 @@ namespace MotorControl {
 
     extern etl::queue<Command, 255, etl::memory_model::MEMORY_MODEL_SMALL> command_queue; 
     extern Command current_command;
+    extern bool stopOnWater;
 
     void stopMotors();
 

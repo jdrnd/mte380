@@ -11,6 +11,11 @@
 
 #include "motor_control.h"
 
+#include "sensors/colorsensor.h"
+
+
+extern ColorSensor colorsensor;
+
 extern Task t_missionControl;
 
 namespace MissionControl {
