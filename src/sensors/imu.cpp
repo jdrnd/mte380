@@ -117,8 +117,8 @@ void IMU::readData() {
     measurements_z_.push(IMU_FILTER_ALPHA * aaWorld.z + (1-IMU_FILTER_ALPHA)*measurements_z_.last());
     accel.z = ((1.0*measurements_z_.last() / 16384.0) * 9.81);
 
-    if (abs(ypr[0]* 180/M_PI- orientation.yaw) < MAX_ROT_SPEED ) {
-        yaw_.push((IMU_FILTER_ALPHA*(ypr[0] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*yaw_.last()) - yaw_offset_);
+    if (abs(ypr[0]* 180/M_PI - orientation.yaw) < MAX_ROT_SPEED ) {
+        yaw_.push((IMU_FILTER_ALPHA*(ypr[0] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*yaw_.last()));
         orientation.yaw = yaw_.last();
     }
 

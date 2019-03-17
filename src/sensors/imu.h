@@ -30,7 +30,7 @@
 // 0 < ALPHA <= 1, lower alpha means more smoothing
 #define IMU_FILTER_ALPHA 0.8
 
-#define MAX_ROT_SPEED 20.0
+#define MAX_ROT_SPEED 25.0
 // This way we can refer to `imu` in our application code
 #define imu IMU_Wrapper::primary
 
