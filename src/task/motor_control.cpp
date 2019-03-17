@@ -6,20 +6,24 @@ namespace MotorControl{
 etl::queue<Command, 255, etl::memory_model::MEMORY_MODEL_SMALL> command_queue;
 Command current_command;
 
-void stopMotors() {
-    current_command.type = Command_t::STOP;
-    current_command.status = CommandStatus::WAITING;
-}
+static uint8_t delay_num = 0;
 
 void init_motor_control() {
-    current_command.type = Command_t::NONE;
     DEBUG_PRINT("Init motors");
+    current_command.type = Command_t::NONE;
+    current_command.status = CommandStatus::DONE;
 
     motors.left->init(LEFT_MOTOR_PWM_PIN, LEFT_MOTOR_ENABLE_PIN, LEFT_MOTOR_SENSOR_A_PIN, LEFT_MOTOR_SENSOR_B_PIN);
     motors.right->init(RIGHT_MOTOR_PWM_PIN, RIGHT_MOTOR_ENABLE_PIN, RIGHT_MOTOR_SENSOR_A_PIN, RIGHT_MOTOR_SENSOR_B_PIN, Direction::REVERSE);
 
     t_motorControl.setCallback(&motor_control);
 }
+
+void stopMotors() {
+    current_command.type = Command_t::STOP;
+    current_command.status = CommandStatus::WAITING;
+}
+
 void run_drive_command() {
     if (current_command.status == CommandStatus::DONE) return;
 
@@ -28,6 +32,7 @@ void run_drive_command() {
     static int16_t speed_command = 0;
 
     if (run_init) {
+        motors.stop();
         motors.left->resetDistance();
         motors.right->resetDistance();
 
@@ -71,6 +76,7 @@ void run_drive_command() {
         run_init = true;
         memset(run_ramp,true,sizeof(bool)*5);
         speed_command = 0;
+        delay_num = 0;
         current_command.status = CommandStatus::DONE;
     }
 
@@ -92,6 +98,11 @@ void run_turn_command() {
     // 1 is right, -1 is left
     int8_t direction = (current_command.value > 0) ? 1 : -1;
     if (run_init) {
+        motors.stop();
+        
+        motors.left->resetDistance();
+        motors.right->resetDistance();
+
         imu->zero_yaw();
         
         motors.left->setSpeed(50);
@@ -102,10 +113,12 @@ void run_turn_command() {
 
     if (abs(motors.left->distance) > 17 && abs(motors.right->distance) > 17) {
         motors.stop();
+        
         motors.left->resetDistance();
         motors.right->resetDistance();
 
         run_init=true;
+        delay_num = 0;
         current_command.status = CommandStatus::DONE;
     }
 }
@@ -113,18 +126,25 @@ void run_turn_command() {
 void run_stop_command() {
     if (current_command.status == CommandStatus::DONE) return;
 
+    command_queue.clear();
     motors.stop();
+    delay_num = 0;
     current_command.status = CommandStatus::DONE;
 }
 
 
 void run_current_command() {
     if (current_command.status == CommandStatus::DONE) {
+        if (delay_num < DELAY_COUNT) {
+            delay_num += 1;
+            return;
+        }
         if (!command_queue.empty()) {
             command_queue.pop_into(current_command);
             DEBUG_PRINT("Command recieved");
         }
     }
+
     switch(current_command.type) {
         case Command_t::DRIVE:
             run_drive_command();
