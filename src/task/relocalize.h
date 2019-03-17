@@ -12,4 +12,6 @@ void start_relocalization();
 
 bool relocalize();
 
+bool normalize();
+
 #endif
