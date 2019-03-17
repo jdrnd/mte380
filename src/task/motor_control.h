@@ -28,6 +28,8 @@ enum class Command_t: uint8_t {
 
 namespace MotorControl {
 
+    const int DELAY_COUNT = 10;
+
     enum class CommandStatus: uint8_t {
         WAITING = 0,
         RUNNING = 1,

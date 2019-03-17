@@ -41,6 +41,8 @@ void process_sensors() {
         DEBUG_PRINT("FLAME");
     }
     
+    PLOTTER_SERIAL.println(imu->orientation.yaw);
+    
     // PLOTTER_SERIAL.print(rangefinders.front.last_reading);
     // PLOTTER_SERIAL.print(",");
     // PLOTTER_SERIAL.print(rangefinders.back.last_reading);
@@ -51,12 +53,12 @@ void process_sensors() {
     // PLOTTER_SERIAL.print(",");
     // PLOTTER_SERIAL.println(rangefinders.shortrange.last_reading);
 
-/*
-    PLOTTER_SERIAL.print(accel.x);
-    PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.print(imu->orientation.pitch);
-    PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.println(imu->orientation.roll);
+
+    // PLOTTER_SERIAL.print(accel.x);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.print(imu->orientation.pitch);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.println(imu->orientation.roll);
     
     // Implicitly accesses varaibles set in the init step
     //plotter.Plot();
