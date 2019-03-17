@@ -145,19 +145,10 @@ void run_stop_command() {
 
 void run_current_command() {
     if (current_command.status == CommandStatus::DONE) {
-<<<<<<< HEAD
-=======
-        DEBUG_PRINT(command_queue.size());
->>>>>>> edge detection+turn
         if (delay_num < DELAY_COUNT) {
             delay_num += 1;
             return;
         }
-<<<<<<< HEAD
-=======
-        DEBUG_PRINT(command_queue.empty());
-        DEBUG_PRINT(command_queue.size() == 1);
->>>>>>> edge detection+turn
         if (!command_queue.empty()) {
             DEBUG_PRINT("queue not empty")
             command_queue.pop_into(current_command);
@@ -166,10 +157,6 @@ void run_current_command() {
             DEBUG_PRINT((int)current_command.value);
         }
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> edge detection+turn
     switch(current_command.type) {
         case Command_t::DRIVE:
             run_drive_command();
