@@ -150,7 +150,6 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                             h_cost+= GRAVEL_COST;
                         else if (map[ny][nx].terrain == Terrain::SAND)
                             h_cost+= SAND_COST;
-
                         else if (map[ny][nx].terrain == Terrain::UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile

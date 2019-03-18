@@ -12,8 +12,11 @@
 #define MAX_PLAN_SIZE 72
 #define MAX_ALGORITHM_STEPS 1000
 
+<<<<<<< HEAD
 #define DEBUG_PATH_PATH
 
+=======
+>>>>>>> basic path planning integration
 /*
 #define WATER 0
 #define WOOD 1
@@ -80,6 +83,36 @@ class PathFinder {
     // the number of steps in the plan
     uint8_t plan_steps;
 
+<<<<<<< HEAD
+=======
+    // Stores all data required to plan a path
+    struct tile {
+        /*  0: water,
+            1: wood,
+            2: gravel,
+            3: sand, 
+            4: unknown but will be discovered once the path is executed,
+            5: unknown undiscovered */
+        Terrain terrain; // the type of terrain in the tile
+        /* The distance from the tile to the target plus the cost of progressing
+            through the tile */
+        uint16_t h_cost;
+        // The cost of getting to the tile from the start tile
+        uint16_t g_cost;
+        // g_cost + h_cost
+        uint16_t f_cost;
+        // true if the tile has been discovered and assigned a cost
+        bool inOpen;
+        // true if the tile has been evaluated
+        bool inClosed;
+        /* the direction from which the cost was calculated, i.e. points to the previous tile */
+        uint8_t parent;
+    };
+
+    // map of all tiles on the field
+    tile map[TILE_ROWS][TILE_ROWS];
+
+>>>>>>> basic path planning integration
     // Holds the x component of the direction vector
     const int8_t X_DIR[4] = {1,0,-1,0};
 
@@ -122,6 +155,7 @@ class PathFinder {
         void printMapParents();
         void printMapFCosts();
 
+<<<<<<< HEAD
         // Stores all data required to plan a path
         struct Tile {
             /*  0: water,
@@ -154,6 +188,10 @@ class PathFinder {
         /* The plan to move from the current bot position to the target. 
         Note: the plan is populated in reverse order */
         int8_t plan[MAX_PLAN_SIZE];
+=======
+        // TODO wrap this in accessor functions
+        etl::queue<Move_t, UINT8_MAX, etl::memory_model::MEMORY_MODEL_SMALL> path;
+>>>>>>> basic path planning integration
 }; // class PathFinder
 
 #endif // PATH_FINDER_H
