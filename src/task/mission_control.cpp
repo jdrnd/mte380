@@ -3,16 +3,22 @@
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::CANDLE_HOMING;
+    State_t state = State_t::NONE;
     static uint64_t count = 0;
 
     Terrain map[6][6];
+<<<<<<< HEAD
 
     uint8_t x_pos = STARTING_X_POS;
     uint8_t y_pos = STARTING_Y_POS;
     int8_t orientation = STARTING_ORIENTATION;
 
     PathFinder pathfinder;
+=======
+    uint8_t x_pos;
+    uint8_t y_pos;
+    int8_t orientation = 0;
+>>>>>>> work on mobility
 
     void init() {
         DEBUG_PRINT("Init mission control");
@@ -246,6 +252,40 @@ namespace MissionControl {
                 break;
 =======
 >>>>>>> initial candle homing
+        }
+    }
+    
+    void do_explore() {
+
+    }
+
+
+    void get_front_square(uint8_t curr_x, uint8_t curr_y, int8_t orientation, uint8_t& x, uint8_t& y) {
+        // Assume we are never facing a wall
+
+        // Transform to a positive orientation between 0 and 3
+        orientation %= 4;
+
+
+        switch (orientation) {
+            case 0:
+                x = curr_x;
+                y = curr_y + 1;
+                break;
+            case 1:
+                x = curr_x + 1;
+                y = curr_y;
+                break;
+            case 2:
+                x = curr_x;
+                y = curr_y -1;
+                break;
+            case 3:
+                x = curr_x -1;
+                y = curr_y;
+                break;
+            default:
+                break;
         }
     }
 };

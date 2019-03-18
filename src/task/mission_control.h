@@ -48,13 +48,15 @@ namespace MissionControl {
     void run();
 
     void do_candle_homing();
-<<<<<<< HEAD
     void do_explore();
     void do_move_path();
 
 
     void get_front_square(uint8_t, uint8_t, int8_t, uint8_t&, uint8_t&);
-=======
->>>>>>> initial candle homing
+
+    void do_explore();
+
+
+    void get_front_square(uint8_t, uint8_t, int8_t, uint8_t&, uint8_t&);
 };
 #endif
