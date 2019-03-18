@@ -64,13 +64,18 @@ namespace MissionControl {
 
     void do_candle_homing() {
         DEBUG_PRINT("Candle homing")
+<<<<<<< HEAD
         static bool turningLeft = false;
         static bool turningRight = false;
         static bool approaching;
+=======
+        static bool turning = false;
+>>>>>>> initial candle homing
         static bool candleFound = false;
 
         static bool positioning_done = false;
 
+<<<<<<< HEAD
         //if (MotorControl::command_queue.size() > 0) return;
 
         /*
@@ -123,6 +128,17 @@ namespace MissionControl {
         }
 
         /*
+=======
+        if (MotorControl::command_queue.size() > 0) return;
+
+        if (!candleFound && MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
+            DEBUG_PRINT("scanning for candle");
+            resetFlameDetection();
+            MotorControl::send_command(Command_t::TURN, -360);
+            positioning_done = true;
+        }
+
+>>>>>>> initial candle homing
         if(!candleFound && flameDetected) {
             DEBUG_PRINT("candle detected");
             MotorControl::stopMotors();
@@ -145,6 +161,7 @@ namespace MissionControl {
 
             state = State_t::NONE;
             count = 0;
+<<<<<<< HEAD
         }
         */
     }
@@ -227,6 +244,8 @@ namespace MissionControl {
                 break;
             default:
                 break;
+=======
+>>>>>>> initial candle homing
         }
     }
 };

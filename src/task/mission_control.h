@@ -17,6 +17,8 @@
 
 #include "actuators/servos.h"
 
+#include "actuators/servos.h"
+
 #define STARTING_X_POS 0
 #define STARTING_Y_POS 0
 #define STARTING_ORIENTATION 1 // along y-axis, towards center
@@ -46,10 +48,13 @@ namespace MissionControl {
     void run();
 
     void do_candle_homing();
+<<<<<<< HEAD
     void do_explore();
     void do_move_path();
 
 
     void get_front_square(uint8_t, uint8_t, int8_t, uint8_t&, uint8_t&);
+=======
+>>>>>>> initial candle homing
 };
 #endif
