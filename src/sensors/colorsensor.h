@@ -7,6 +7,7 @@
 #include <Arduino.h>
 
 #include "common.h"
+#include "terrain.h"
 
 // These are the configuration pins on the Arduino Mega
 /* 
@@ -63,15 +64,6 @@ enum freqGainLevel : uint8_t {
     FREQ_GAIN_MED                               = 2,
     FREQ_GAIN_HIGH                              = 1,
 };
-
-// 0 -> grav, 1 -> water, 2 -> wood, 3-> sand
-enum class Terrain: uint8_t {
-    GRAVEL = 0,
-    WOOD = 1,
-    SAND = 2,
-    WATER = 3,
-    ERROR = 5,
-}; 
 
 class ColorSensor{
     public:

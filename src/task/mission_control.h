@@ -8,8 +8,9 @@
 
 #include "common.h"
 
-
 #include "motor_control.h"
+
+#include "path_finder/path_finder.h"
 
 #include "sensors/colorsensor.h"
 #include "sensors/rangefinders.h"
@@ -17,7 +18,7 @@
 
 #include "actuators/servos.h"
 
-#define STARTING_X_POS 2
+#define STARTING_X_POS 0
 #define STARTING_Y_POS 0
 
 extern ColorSensor colorsensor;
@@ -30,10 +31,12 @@ namespace MissionControl {
 
     extern int8_t orientation;
     extern Terrain map[6][6];
+    extern PathFinder pathfinder;
 
     enum class State_t: uint8_t {
         NONE = 0,
         EXPLORE = 42,
+        MOVE,
         CANDLE_HOMING = 25
     };
 
@@ -44,6 +47,7 @@ namespace MissionControl {
 
     void do_candle_homing();
     void do_explore();
+    void do_move_path();
 
 
     void get_front_square(uint8_t, uint8_t, int8_t, uint8_t&, uint8_t&);

@@ -1,18 +1,25 @@
 #ifndef PATH_FINDER_H
 #define PATH_FINDER_H
 
+#include "common.h"
+#include "terrain.h"
+
+#include "etl/queue.h"
+
 #define TILE_ROWS 6
 #define TILE_COLS 6
 #define INF_COST 65535
 #define MAX_PLAN_SIZE 72
 #define MAX_ALGORITHM_STEPS 1000
 
+/*
 #define WATER 0
 #define WOOD 1
 #define GRAVEL 2
 #define SAND 3
 #define UNKNOWN 5
 #define ERROR_TERRAIN 20
+*/
 
 #define TILE_COST 10
 #define TURN_COST 6 // (approximately 0.524 of the TILE_COST)
@@ -29,16 +36,22 @@
         3 - down
 */
 
+enum class Move_t: uint8_t {
+    FORWARD,
+    TURN_LEFT,
+    TURN_RIGHT
+};
+
 class PathFinder {
     /*  When generating a random tile (for testing) a tile is randomly selected
         from this terrain distribution */
-    const uint8_t TILE_PROBABILITY[36] = {
-        GRAVEL,GRAVEL,GRAVEL,GRAVEL,WOOD,WOOD,
-        SAND,SAND,SAND,SAND,WOOD,WOOD,
-        WOOD,WOOD,WOOD,WOOD,WOOD,WOOD,
-        WOOD,WOOD,WOOD,WOOD,WOOD,WOOD,
-        WOOD,WOOD,WOOD,WOOD,WOOD,WOOD,
-        WOOD,WOOD,WOOD,WOOD,WOOD,WOOD,
+    const Terrain TILE_PROBABILITY[36] = {
+        Terrain::GRAVEL,Terrain::GRAVEL,Terrain::GRAVEL,Terrain::GRAVEL,Terrain::WOOD,Terrain::WOOD,
+        Terrain::SAND,Terrain::SAND,Terrain::SAND,Terrain::SAND,Terrain::WOOD,Terrain::WOOD,
+        Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,
+        Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,
+        Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,
+        Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,Terrain::WOOD,
     };
 
     /* If true the map has been populated with parent values from the bot to 
@@ -75,7 +88,7 @@ class PathFinder {
             3: sand, 
             4: unknown but will be discovered once the path is executed,
             5: unknown undiscovered */
-        uint8_t terrain; // the type of terrain in the tile
+        Terrain terrain; // the type of terrain in the tile
         /* The distance from the tile to the target plus the cost of progressing
             through the tile */
         uint16_t h_cost;
@@ -112,7 +125,7 @@ class PathFinder {
     public:
         void init();
         // Generates a random terrain value
-        uint8_t getRandomTerrain();
+        Terrain getRandomTerrain();
         // Sets the starting position of the bot
         void setBotPosition(uint8_t x, uint8_t y, uint8_t r);
         // Sets the target position
@@ -133,12 +146,15 @@ class PathFinder {
                 1: turn 90 degrees left. */
         int8_t* retrievePlan(bool & success, uint8_t & steps);
 
-        bool setTerrain(uint8_t x, uint8_t y, uint8_t terrain);
-        uint8_t getTerrain(uint8_t x, uint8_t y);
+        bool setTerrain(uint8_t x, uint8_t y, Terrain terrain);
+        Terrain getTerrain(uint8_t x, uint8_t y);
         
         void printMapTerrain();
         void printMapParents();
         void printMapFCosts();
+
+        // TODO wrap this in accessor functions
+        etl::queue<Move_t, UINT8_MAX, etl::memory_model::MEMORY_MODEL_SMALL> path;
 }; // class PathFinder
 
 #endif // PATH_FINDER_H

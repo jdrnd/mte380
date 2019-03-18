@@ -14,7 +14,7 @@ void PathFinder::init() {
     clearPlan();
     for(size_t i = 0; i < TILE_ROWS; i++)
         for(size_t j = 0; j < TILE_COLS; j++)
-            map[i][j].terrain = UNKNOWN; //getRandomTerrain();
+            map[i][j].terrain = Terrain::UNKNOWN; //getRandomTerrain();
 }
 
 void PathFinder::clearPlan() {
@@ -43,7 +43,7 @@ void PathFinder::setBotPosition(uint8_t x, uint8_t y, uint8_t r) {
     bot_r = r;
     // if the bot has never been in the map we know that it is placed on wood
     if (!bot_set)
-        map[bot_y][bot_x].terrain = WOOD;
+        map[bot_y][bot_x].terrain = Terrain::WOOD;
     planned = false;
     bot_set = true;
 }
@@ -65,7 +65,7 @@ void PathFinder::findNext(uint8_t & best_x, uint8_t & best_y) {
 
 bool PathFinder::planPath(int8_t unknown_cost) {
     if (!bot_set || !target_set) {
-        Serial.println("Set bot and target before planning! ");
+        DEBUG_PRINT("Set bot and target before planning! ");
         return false;
     }
     clearPlan();
@@ -77,7 +77,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
     uint16_t count = 0; // number of steps the algorithm has taken
     
     // TODO @JordanSlater rename this to DEBUG
-    Serial.println("Planning to Target: (" + String(target_x) + ", " 
+    DEBUG_PRINT("Planning to Target: (" + String(target_x) + ", " 
         + String(target_y) + ")");
 
     // evaluate the starting tile
@@ -105,7 +105,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
 
         if (x == target_x && y == target_y)
         {
-            Serial.println("Done planning path");
+            DEBUG_PRINT("Done planning path");
             planned = true;
             return true;
         } else {
@@ -118,23 +118,23 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 // if the neighbour is in map bounds
                 if (nx < TILE_COLS && nx >= 0 && ny < TILE_ROWS && ny >= 0)
                     // is the tile isn't water and it's not in closed
-                    if (map[ny][nx].terrain != WATER && !map[ny][nx].inClosed)
+                    if (map[ny][nx].terrain != Terrain::WATER && !map[ny][nx].inClosed)
                     {
                         // compute the h_cost if the bot was to move to the tile
                         h_cost = TILE_COST * (abs(target_x - nx) 
                             + abs(target_y - ny));
-                        if (map[ny][nx].terrain == GRAVEL)
+                        if (map[ny][nx].terrain == Terrain::GRAVEL)
                             h_cost+= GRAVEL_COST;
-                        else if (map[ny][nx].terrain == SAND)
+                        else if (map[ny][nx].terrain == Terrain::SAND)
                             h_cost+= SAND_COST;
-                        else if (map[ny][nx].terrain == UNKNOWN)
+                        else if (map[ny][nx].terrain == Terrain::UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
                         g_cost = TILE_COST + map[y][x].g_cost;
                         // if the bot has to turn
                         if (map[y][x].parent != (dir + 2) % 4) {
                             g_cost += TURN_COST;
-                            if (map[ny][nx].terrain == SAND)
+                            if (map[ny][nx].terrain == Terrain::SAND)
                                 g_cost += SAND_TURN_COST;
                         }
                         /* if the resulting f_cost is better than the f_cost 
@@ -159,20 +159,21 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         /*
         // TODO @JordanSlater change to DEBUG print statements
         // DEBUGGING CODE
-        Serial.println("count: " + String(count) + " at: (" + String(x) + ", " 
+        DEBUG_PRINT("count: " + String(count) + " at: (" + String(x) + ", " 
             + String(y) + ")");
         printMapParents();
         //printMapFCosts();
-        Serial.println();
+        DEBUG_PRINT();
         */
     }
-    Serial.println("Ran out of steps");
+    DEBUG_PRINT("Ran out of steps");
     return false;
 }
 
 bool PathFinder::createPath() {
     if (!planned)
         return false;
+    path.clear();
     // work backwards from the target tile to the bot's tile
     int8_t x = target_x;
     int8_t y = target_y;
@@ -193,25 +194,33 @@ bool PathFinder::createPath() {
         y+= Y_DIR[prev_parent];
         // make sure the new tile is in the map
         if (x < 0 || x >= TILE_COLS || y < 0 || y >= TILE_ROWS) {
-            Serial.println("Error while creating plan, out of bounds at step: " 
+            DEBUG_PRINT("Error while creating plan, out of bounds at step: " 
                     + String(plan_steps));
             return false;
         }
         // add a forward move to the path
         plan[plan_steps++] = 0;
+        path.push(Move_t::FORWARD);
+
         // if the bot has changed orientation since the last tile
-        if (prev_parent != map[y][x].parent)
-            if ((map[y][x].parent + 1) % 4 == prev_parent)
+        if (prev_parent != map[y][x].parent) {
+            if ((map[y][x].parent + 1) % 4 == prev_parent) {
                 // the bot turned left
                 plan[plan_steps++] = 1;
-            else if ((prev_parent + 1) % 4 == map[y][x].parent)
+                path.push(Move_t::TURN_LEFT);
+            }
+            else if ((prev_parent + 1) % 4 == map[y][x].parent) {
                 // the bot turned right
                 plan[plan_steps++] = -1;
+                path.push(Move_t::TURN_RIGHT);
+            }
             else { // the parent tile points back at the current tile
-                Serial.println("Error while creating plan, repeat tile at step: " 
+                DEBUG_PRINT("Error while creating plan, repeat tile at step: " 
                     + String(plan_steps));
                 return false;
             }
+        }
+        DEBUG_PRINT(path.size());
     }
     // path is too long for path array
     path_populated = false;
@@ -238,20 +247,20 @@ int8_t* PathFinder::retrievePlan(bool & success, uint8_t & steps) {
     return NULL;
 }
 
-uint8_t PathFinder::getRandomTerrain() {
+Terrain PathFinder::getRandomTerrain() {
     return TILE_PROBABILITY[(uint8_t)(random(0,36))];
 }
 
-bool PathFinder::setTerrain(uint8_t x, uint8_t y, uint8_t terrain) {
+bool PathFinder::setTerrain(uint8_t x, uint8_t y, Terrain terrain) {
     if (!(x < TILE_COLS && y < TILE_ROWS))
         return false;
     map[y][x].terrain = terrain;
     return true;
 }
 
-uint8_t PathFinder::getTerrain(uint8_t x, uint8_t y) {
+Terrain PathFinder::getTerrain(uint8_t x, uint8_t y) {
     if (!(x < TILE_COLS && y < TILE_ROWS))
-        return ERROR_TERRAIN;
+        return Terrain::ERROR;
     return map[y][x].terrain;
 }
 
@@ -259,10 +268,10 @@ void PathFinder::printMapTerrain() {
     String s;
     for(int8_t i = TILE_ROWS - 1; i >= 0; i--) {
         for(size_t j = 0; j < TILE_COLS; j++)
-            s = s + map[i][j].terrain + ",";
+            s = s + (uint8_t)map[i][j].terrain + ",";
         s = s + "\n";
     }
-    Serial.print(s);
+    DEBUG_PRINT(s);
 }
 
 void PathFinder::printMapParents() {
@@ -272,7 +281,7 @@ void PathFinder::printMapParents() {
             s = s + map[i][j].parent + ",";
         s = s + "\n";
     }
-    Serial.print(s);
+    DEBUG_PRINT(s);
 }
 
 void PathFinder::printMapFCosts() {
@@ -282,6 +291,6 @@ void PathFinder::printMapFCosts() {
             s = s + map[i][j].f_cost + ",";
         s = s + "\n";
     }
-    Serial.print(s);
+    DEBUG_PRINT(s);
 }
 

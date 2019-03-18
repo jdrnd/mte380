@@ -3,6 +3,7 @@
 #include "path_finder/path_finder.h"
 #include "path_finder/examples/path_finder_demo.h"
 
+/*
 void doPathFinderDemo() {
     Serial.println("\n   PATH FINDER DEMO");
     
@@ -32,3 +33,4 @@ void doPathFinderDemo() {
     }
     //pathFinder.printMapFCosts();
 }
+*/
