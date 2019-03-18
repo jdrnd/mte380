@@ -3,15 +3,30 @@
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::CANDLE_HOMING;
+    State_t state = State_t::NONE;
     static uint64_t count = 0;
+
+    Terrain map[6][6];
+    uint8_t x_pos;
+    uint8_t y_pos;
+    int8_t orientation = 0;
 
     void init() {
         DEBUG_PRINT("Init mission control");
 
-        MotorControl::send_command(Command_t::DRIVE, 75);
+        map[STARTING_X_POS][STARTING_Y_POS] = Terrain::WOOD;
+
+        MotorControl::send_command(Command_t::DRIVE, 30);
+        MotorControl::send_command(Command_t::TURN, 90);
+        MotorControl::send_command(Command_t::DRIVE, 30);
         MotorControl::send_command(Command_t::TURN, -90);
-        MotorControl::send_command(Command_t::DRIVE, 50);
+        MotorControl::send_command(Command_t::TURN, 60);
+        // MotorControl::send_command(Command_t::TURN, -90);
+        // MotorControl::send_command(Command_t::TURN, -90);
+        // MotorControl::send_command(Command_t::TURN, 90);
+        // MotorControl::send_command(Command_t::TURN, 90);
+        // MotorControl::send_command(Command_t::TURN, 90);
+        // MotorControl::send_command(Command_t::TURN, 90);
         t_missionControl.setCallback(&run);
     }
 
@@ -23,6 +38,8 @@ namespace MissionControl {
             case State_t::CANDLE_HOMING:
                 do_candle_homing();
                 break;
+            case State_t::EXPLORE:
+                do_explore();
             default:
                 break;
         };
@@ -77,6 +94,40 @@ namespace MissionControl {
 
             state = State_t::NONE;
             count = 0;
+        }
+    }
+    
+    void do_explore() {
+
+    }
+
+
+    void get_front_square(uint8_t curr_x, uint8_t curr_y, int8_t orientation, uint8_t& x, uint8_t& y) {
+        // Assume we are never facing a wall
+
+        // Transform to a positive orientation between 0 and 3
+        orientation %= 4;
+
+
+        switch (orientation) {
+            case 0:
+                x = curr_x;
+                y = curr_y + 1;
+                break;
+            case 1:
+                x = curr_x + 1;
+                y = curr_y;
+                break;
+            case 2:
+                x = curr_x;
+                y = curr_y -1;
+                break;
+            case 3:
+                x = curr_x -1;
+                y = curr_y;
+                break;
+            default:
+                break;
         }
     }
 };

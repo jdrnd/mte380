@@ -17,6 +17,8 @@
 
 #include "actuators/servos.h"
 
+#define STARTING_X_POS 2
+#define STARTING_Y_POS 0
 
 extern ColorSensor colorsensor;
 extern bool flameDetected;
@@ -26,8 +28,12 @@ extern Task t_missionControl;
 
 namespace MissionControl {
 
+    extern int8_t orientation;
+    extern Terrain map[6][6];
+
     enum class State_t: uint8_t {
         NONE = 0,
+        EXPLORE = 42,
         CANDLE_HOMING = 25
     };
 
@@ -37,5 +43,9 @@ namespace MissionControl {
     void run();
 
     void do_candle_homing();
+    void do_explore();
+
+
+    void get_front_square(uint8_t, uint8_t, int8_t, uint8_t&, uint8_t&);
 };
 #endif

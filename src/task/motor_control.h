@@ -7,9 +7,11 @@
 
 #include "actuators/drive_motors.h"
 
+#include "mission_control.h"
 #include "common.h"
 
 #define MOTOR_PROPORTIONAL_CONTSTANT 5
+#define MOTOR_TURN_SPEED 30
 
 #include "sensors/imu.h"
 #include "sensors/magnetic.h"

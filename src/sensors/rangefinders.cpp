@@ -10,7 +10,7 @@ bool Rangefinder<SensorType>::init() {
     last_reading = 0;
     readings_.push(0);
     isRunning = false;
-    sensor.setTimeout(500);
+    sensor.setTimeout(50);
     sensor.init();
     return (sensor.last_status == 0);
 }
