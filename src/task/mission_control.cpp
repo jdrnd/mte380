@@ -3,22 +3,18 @@
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::NONE;
+    State_t state = State_t::MOVE;
     static uint64_t count = 0;
 
     Terrain map[6][6];
-<<<<<<< HEAD
 
     uint8_t x_pos = STARTING_X_POS;
     uint8_t y_pos = STARTING_Y_POS;
     int8_t orientation = STARTING_ORIENTATION;
 
     PathFinder pathfinder;
-=======
-    uint8_t x_pos;
-    uint8_t y_pos;
-    int8_t orientation = 0;
->>>>>>> work on mobility
+
+    PathFinder pathfinder;
 
     void init() {
         DEBUG_PRINT("Init mission control");
@@ -70,18 +66,14 @@ namespace MissionControl {
 
     void do_candle_homing() {
         DEBUG_PRINT("Candle homing")
-<<<<<<< HEAD
         static bool turningLeft = false;
         static bool turningRight = false;
         static bool approaching;
-=======
         static bool turning = false;
->>>>>>> initial candle homing
         static bool candleFound = false;
 
         static bool positioning_done = false;
 
-<<<<<<< HEAD
         //if (MotorControl::command_queue.size() > 0) return;
 
         /*
@@ -134,17 +126,6 @@ namespace MissionControl {
         }
 
         /*
-=======
-        if (MotorControl::command_queue.size() > 0) return;
-
-        if (!candleFound && MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
-            DEBUG_PRINT("scanning for candle");
-            resetFlameDetection();
-            MotorControl::send_command(Command_t::TURN, -360);
-            positioning_done = true;
-        }
-
->>>>>>> initial candle homing
         if(!candleFound && flameDetected) {
             DEBUG_PRINT("candle detected");
             MotorControl::stopMotors();
@@ -167,7 +148,6 @@ namespace MissionControl {
 
             state = State_t::NONE;
             count = 0;
-<<<<<<< HEAD
         }
         */
     }
@@ -250,8 +230,6 @@ namespace MissionControl {
                 break;
             default:
                 break;
-=======
->>>>>>> initial candle homing
         }
     }
     
@@ -259,13 +237,34 @@ namespace MissionControl {
 
     }
 
+    void do_move_path() {
+        if (MotorControl::current_command.status != CommandStatus::DONE) return;
+        if (pathfinder.path.empty()) return;
+
+        // When we've completed our last command pull a new one from the path and execute it
+        Move_t next_move;
+
+        pathfinder.path.pop_into(next_move);
+
+        switch(next_move) {
+            case Move_t::FORWARD:
+                MotorControl::send_command(Command_t::DRIVE, 30);
+                break;
+            case Move_t::TURN_LEFT:
+                MotorControl::send_command(Command_t::TURN, -90);
+                break;
+            case Move_t::TURN_RIGHT:
+                MotorControl::send_command(Command_t::TURN, 90);
+                break;
+            default:
+                break;
+        };
+    }
 
     void get_front_square(uint8_t curr_x, uint8_t curr_y, int8_t orientation, uint8_t& x, uint8_t& y) {
         // Assume we are never facing a wall
-
         // Transform to a positive orientation between 0 and 3
         orientation %= 4;
-
 
         switch (orientation) {
             case 0:
