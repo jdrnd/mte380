@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <TaskSchedulerDeclarations.h>
+#include "etl/queue.h"
 
 #include "actuators/drive_motors.h"
 
@@ -18,14 +19,39 @@ extern Motors motors;
 
 extern Magnetics magnetics;
 
-enum class Command: uint8_t {
+enum class Command_t: uint8_t {
     DRIVE,
-    TURN
+    TURN,
+    STOP,
+    NONE
 };
 
-void init_motor_control();
+namespace MotorControl {
 
+    const int DELAY_COUNT = 10;
 
-void motor_control();
+    enum class CommandStatus: uint8_t {
+        WAITING = 0,
+        RUNNING = 1,
+        DONE = 2
+    };
+
+    struct Command {
+        Command_t type;
+        int16_t value;
+        CommandStatus status;
+    };
+
+    extern etl::queue<Command, 255, etl::memory_model::MEMORY_MODEL_SMALL> command_queue; 
+    extern Command current_command;
+    extern bool stopOnWater;
+
+    void stopMotors();
+
+    void init_motor_control();
+    void motor_control();
+
+    void send_command(Command_t, int16_t);
+};
 
 #endif

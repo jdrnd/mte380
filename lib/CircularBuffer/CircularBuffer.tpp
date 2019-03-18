@@ -157,4 +157,15 @@ void inline CircularBuffer<T,S,IT>::debugFn(Print* out, void (*printFunction)(Pr
 		out->println();
 	}
 }
+
+template<typename T, size_t S, typename IT>
+T* inline CircularBuffer<T,S,IT>::get_tail() const {
+	return tail;
+}
+
+template<typename T, size_t S, typename IT>
+T* inline CircularBuffer<T,S,IT>::get_buffer() const {
+	return &buffer[0];
+}
+
 #endif

@@ -13,6 +13,7 @@
 #include "sensors/imu.h"
 #include "sensors/rangefinders.h"
 #include "sensors/photosensor.h"
+#include "sensors/gyro.h"
 
 extern Task t_processSensors;
 
@@ -22,6 +23,7 @@ extern Photosensor candleSensor;
 extern ColorSensor colorsensor;
 extern Magnetics magnetics;
 extern bool flameDetected;
+extern Gyro gyro;
 
 //extern IMU* imu;
 

@@ -4,7 +4,7 @@
 #include <Plotter.h>
 
 // Use this include because the author of the library was dumb
-// and put code in TaskScheduler.h so we get duplicated symbols
+// and put C++ code in TaskScheduler.h so we get duplicated symbols
 #include <TaskSchedulerDeclarations.h>
 
 #include "actuators/drive_motors.h"
@@ -16,34 +16,43 @@
 #include "task/read_sensors.h"
 #include "task/process_sensors.h"
 #include "task/motor_control.h"
+#include "task/mission_control.h"
 
-#include "common.h"
+#include "sensors/gyro.h"
+
+#include "common.h"//NEEDED FOR GYROS
 
 Motors motors;
 Photosensor candleSensor;
 Rangefinders rangefinders;
+
+bool objects[36];
+int16_t confidence[36];
+
 ColorSensor colorsensor;
 Magnetics magnetics;
+Gyro gyro;
 
 Scheduler taskManager;
+
 
 // Times in milliseconds
 Task t_readSensors(100UL, TASK_FOREVER, &init_sensors, &taskManager, true);
 Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
-Task t_motorControl(10UL, TASK_FOREVER, &init_motor_control, &taskManager, true);
-
+Task t_motorControl(10UL, TASK_FOREVER, &MotorControl::init_motor_control, &taskManager, true);
+Task t_missionControl(100UL, TASK_FOREVER, &MissionControl::init, &taskManager, true);
 // XBEE
 // 3.3 V
 // GND
 // DOUT -> Serial3 Rx
 // DIN -> Serial3 Tx
 // Reset -> digital pin 6
-#define XBEE_RESET_PIN 6
+ #define XBEE_RESET_PIN 6
 
 extern Servo armservo;
 
 void setup() {
-    init_damper();
+    //init_damper();
 
     Serial.begin(115200);
     Serial3.begin(115200);
@@ -58,6 +67,7 @@ void setup() {
     //raise_arm_servo();  
     delay(2000);
 }
+
 
 void loop() {
     taskManager.execute();

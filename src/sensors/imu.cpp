@@ -29,12 +29,22 @@ bool IMU::init() {
     uint8_t devStatus = mpu_.dmpInitialize();
 
     // Offsets determined experimentally
+    /*
     mpu_.setXAccelOffset(-2818);
     mpu_.setYAccelOffset(1090);
     mpu_.setZAccelOffset(912);
     mpu_.setXGyroOffset(3);
     mpu_.setYGyroOffset(77);
     mpu_.setZGyroOffset(-11);
+    */
+
+    mpu_.setXAccelOffset(-3705);
+    mpu_.setYAccelOffset(445);
+    mpu_.setZAccelOffset(1662);
+    mpu_.setXGyroOffset(17);
+    mpu_.setYGyroOffset(9);
+    mpu_.setZGyroOffset(12);
+
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
@@ -68,24 +78,17 @@ void IMU_Wrapper::onDataReady() {
 
 // ISR that is run every time the IMU has a new reading
 void IMU::readData() {
-    //mpu_.resetFIFO();
     //data_ready_ = false;
 
-    DEBUG_PRINT("waiting for IMU")
     // wait for correct available data length, should be a VERY short wait
     uint16_t fifoCount = mpu_.getFIFOCount();
     while (fifoCount < imu_packetsize_) {
         fifoCount = mpu_.getFIFOCount();
         DEBUG_PRINT("nodata")
     }
-
-    DEBUG_PRINT("passedwait");
-    DEBUG_PRINT("imu has bytes");
     // read a packet from FIFO
     uint8_t imu_buffer[64];
     mpu_.getFIFOBytes(imu_buffer, imu_packetsize_);
-
-    DEBUG_PRINT("gotbytes bytes");
     
     // track FIFO count here in case there is > 1 packet available
     // (this lets us immediately read more without waiting for an interrupt)
@@ -114,16 +117,23 @@ void IMU::readData() {
     measurements_z_.push(IMU_FILTER_ALPHA * aaWorld.z + (1-IMU_FILTER_ALPHA)*measurements_z_.last());
     accel.z = ((1.0*measurements_z_.last() / 16384.0) * 9.81);
 
-    yaw_.push((IMU_FILTER_ALPHA*(ypr[0] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*yaw_.last()) - yaw_offset_);
-    orientation.yaw = yaw_.last();
-    pitch_.push(IMU_FILTER_ALPHA*(ypr[1] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*pitch_.last());
-    orientation.pitch = pitch_.last();
-    roll_.push(IMU_FILTER_ALPHA*(ypr[2] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*roll_.last());
-    orientation.roll = roll_.last();
+    if (abs(ypr[0]* 180/M_PI - orientation.yaw) < MAX_ROT_SPEED ) {
+        yaw_.push((IMU_FILTER_ALPHA*(ypr[0] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*yaw_.last()));
+        orientation.yaw = yaw_.last();
+    }
 
-    DEBUG_PRINT("doneimu");
+    if (abs(ypr[1]* 180/M_PI- orientation.pitch) < MAX_ROT_SPEED ) {
+        pitch_.push(IMU_FILTER_ALPHA*(ypr[1] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*pitch_.last());
+        orientation.pitch = pitch_.last();
+    }
+
+    if (abs(ypr[2]* 180/M_PI- orientation.roll) < MAX_ROT_SPEED ) {
+        roll_.push(IMU_FILTER_ALPHA*(ypr[2] * 180/M_PI) + (1-IMU_FILTER_ALPHA)*roll_.last());
+        orientation.roll = roll_.last();
+    }
 
     mpu_.resetFIFO();
+    DEBUG_PRINT("doneimu");
 }
 
 void IMU::zero_yaw() {

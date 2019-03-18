@@ -21,6 +21,14 @@
 
 #define RANGERFINDER_FILTER_ALPHA 0.8
 
+#define BUFF_SIZE 100
+
+//offsets to the lidars from the IMU, in mm
+#define RIGHT_LIDAR_OFFSET 50
+#define LEFT_LIDAR_OFFSET 50
+#define FRONT_LIDAR_OFFSET 100
+#define BACK_LIDAR_OFFSET 100
+
 /*
 Requires that Wire.begin() and Wire.setClock() are called first.
 
@@ -46,8 +54,11 @@ class Rangefinder {
         uint16_t last_reading;
 
         bool isRunning;
+
+        //Moved to public, having difficulties with a pointer to a variable class like circular buffer
+        CircularBuffer<uint16_t, BUFF_SIZE> readings_;
+
     private:
-        CircularBuffer<uint16_t, 100> readings_;
         SensorType sensor;
 };
 
