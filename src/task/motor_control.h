@@ -26,15 +26,17 @@ enum class Command_t: uint8_t {
     NONE
 };
 
+enum class CommandStatus: uint8_t {
+    WAITING = 0,
+    RUNNING = 1,
+    DONE = 2
+};
+
 namespace MotorControl {
 
     const int DELAY_COUNT = 10;
 
-    enum class CommandStatus: uint8_t {
-        WAITING = 0,
-        RUNNING = 1,
-        DONE = 2
-    };
+
 
     struct Command {
         Command_t type;

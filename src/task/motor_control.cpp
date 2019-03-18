@@ -96,7 +96,7 @@ void run_turn_command() {
     if (current_command.status == CommandStatus::DONE) return;
     DEBUG_PRINT("RUNNING TURN");
 
-    uint16_t command_value = current_command.value;
+    int16_t command_value = current_command.value;
 
     // 1 is right, -1 is left
     int8_t direction = (current_command.value > 0) ? 1 : -1;
@@ -116,8 +116,13 @@ void run_turn_command() {
         current_command.status = CommandStatus::RUNNING;
     }
 
+    DEBUG_PRINT((float)command_value);
+    DEBUG_PRINT(1.0*command_value/90);
+    DEBUG_PRINT(abs(((float)command_value/90)*19.6));
+    DEBUG_PRINT(motors.left->distance);
+    DEBUG_PRINT(motors.right->distance);
 
-    if (abs(motors.left->distance) > 19.6 && abs(motors.right->distance) > 19.6) {
+    if (abs(motors.left->distance) > abs((command_value/90)*19.6) && abs(motors.right->distance) > abs((command_value/90)*19.6)) {
         DEBUG_PRINT("doneturn");
 
         motors.stop();
