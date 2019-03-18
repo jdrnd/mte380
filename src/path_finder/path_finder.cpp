@@ -132,8 +132,11 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                         // compute the g_cost of getting to the tile
                         g_cost = TILE_COST + map[y][x].g_cost;
                         // if the bot has to turn
-                        if (map[y][x].parent != (dir + 2) % 4)
+                        if (map[y][x].parent != (dir + 2) % 4) {
                             g_cost += TURN_COST;
+                            if (map[ny][nx].terrain == SAND)
+                                g_cost += SAND_TURN_COST;
+                        }
                         /* if the resulting f_cost is better than the f_cost 
                             currently in the neighbour tile */
                         if (g_cost + h_cost < map[ny][nx].f_cost)
