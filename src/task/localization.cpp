@@ -19,7 +19,7 @@ void localize() {
         }
     } else {
         //DEBUG_PRINT("FINISHED RELOCALIZATION");
-        PLOTTER_SERIAL.print("1,1");
+        //PLOTTER_SERIAL.print("1,1");
     }
 }
 

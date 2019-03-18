@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <relocalize.h>
+#include <motor_control.h>
 
 #define NUM 4
 
@@ -21,9 +22,8 @@ void start_relocalization() {
         sum[i] = 0;
     }
     buffer_ready = false;
-    
-    motors.left->stop();
-    motors.right->stop();
+
+    MotorControl::send_command(Command_t::TURN, -9000);
 }
 
 bool relocalize() {
@@ -67,13 +67,12 @@ bool normalize() {
     if (index == 0)
         buffer_ready = true;
 
-    PLOTTER_SERIAL.print(String(rangefinders.front.readings_.last()) + "," + String(sum[1]) + "\n");
+    PLOTTER_SERIAL.print(String(rangefinders.front.readings_.last()) + "," + String(sum[1] / BUFF_SIZE) + "," + String(diff[1]) + "\n");
 
     if (buffer_ready) {
         if (sum[1] > - BUFF_SIZE * THRESHOLD && sum[1] > BUFF_SIZE * THRESHOLD) {
-            motors.left->stop();
-            motors.right->stop();
-            return true;
+            MotorControl::stopMotors();
+            //return true;
         }
     }
     
