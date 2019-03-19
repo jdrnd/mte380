@@ -55,6 +55,7 @@ void process_sensors() {
     PLOTTER_SERIAL.print(rangefinders.right.last_reading);
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.println((int)(flameDetected==true));
+    */
 
     // PLOTTER_SERIAL.print(accel.x);
     // PLOTTER_SERIAL.print(",");

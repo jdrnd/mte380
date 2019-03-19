@@ -27,6 +27,7 @@
 #define TURN_COST 6 // (approximately 0.524 of the TILE_COST)
 #define SAND_COST 20 // in addition to the base tile cost
 #define GRAVEL_COST 10 // again in addition
+#define WATER_COST 500 // again in addition
 #define SAND_TURN_COST (1000 - TURN_COST) // cost to turn in the sand
 
 /* NOTE: all rotation and parent directions are encoded as 0,1,2,3
@@ -41,7 +42,8 @@
 enum class Move_t: uint8_t {
     FORWARD,
     TURN_LEFT,
-    TURN_RIGHT
+    TURN_RIGHT,
+    MOVE_ONTO_WATER
 };
 
 class PathFinder {
@@ -103,9 +105,6 @@ class PathFinder {
         /* the direction from which the cost was calculated, i.e. points to the previous tile */
         uint8_t parent;
     };
-
-    // map of all tiles on the field
-    tile map[TILE_ROWS][TILE_ROWS];
 
     // Holds the x component of the direction vector
     const int8_t X_DIR[4] = {1,0,-1,0};
@@ -182,14 +181,6 @@ class PathFinder {
         Note: the plan is populated in reverse order */
         int8_t plan[MAX_PLAN_SIZE];
 
-        // TODO wrap this in accessor functions
-        etl::queue<Move_t, UINT8_MAX, etl::memory_model::MEMORY_MODEL_SMALL> path;
-        // map of all tiles on the field
-        Tile map[TILE_ROWS][TILE_ROWS];
-
-        /* The plan to move from the current bot position to the target. 
-        Note: the plan is populated in reverse order */
-        int8_t plan[MAX_PLAN_SIZE];
 }; // class PathFinder
 
 #endif // PATH_FINDER_H

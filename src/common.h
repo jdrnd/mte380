@@ -9,11 +9,11 @@
 #include <ArduinoSTL.h>
 
 // Start with the map state known
-//#define USE_KNOWN_MAP
+#define USE_KNOWN_MAP
 
 #define RUN_LOGGING
 
-#define RUN_LIDARS
+//#define RUN_LIDARS
 //#define RUN_IMU
 
 //#define LOG_MOTOR_CONTROL

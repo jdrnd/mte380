@@ -1,14 +1,39 @@
 #include <Arduino.h>
 #include <math.h>
+#include <common.h>
 #include "path_finder/path_finder.h"
 
+/*
 Terrain course[6][6] = {
     {Terrain::WATER, Terrain::GRAVEL, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WATER, Terrain::WOOD, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
+};
+*/
+/*
+// complex course
+Terrain course[6][6] = {
+    {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WATER, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD}
+};
+*/
+
+// across water
+Terrain course[6][6] = {
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    //{Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER},
 };
 
 void PathFinder::init() {
@@ -132,8 +157,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 int8_t ny = y + Y_DIR[dir];
                 // if the neighbour is in map bounds
                 if (nx < TILE_COLS && nx >= 0 && ny < TILE_ROWS && ny >= 0)
-                    // is the tile isn't water and it's not in closed
-                    if (map[ny][nx].terrain != Terrain::WATER && !map[ny][nx].inClosed)
+                    // it's not in closed
+                    if (!map[ny][nx].inClosed) // && map[ny][nx].terrain != WATER
                     {
                         // compute the h_cost if the bot was to move to the tile
                         h_cost = TILE_COST * (abs(target_x - nx) 
@@ -142,7 +167,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                             h_cost+= GRAVEL_COST;
                         else if (map[ny][nx].terrain == Terrain::SAND)
                             h_cost+= SAND_COST;
-
+                        else if (map[ny][nx].terrain == Terrain::WATER)
+                            h_cost+= WATER_COST;
                         else if (map[ny][nx].terrain == Terrain::UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
@@ -202,6 +228,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
             path_populated = true;
             return true;
         }
+        Terrain prev_terrain = map[y][x].terrain;
         // store the previous parent
         prev_parent = map[y][x].parent;
         // move backward in the path
@@ -213,9 +240,14 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                     + String(plan_steps));
             return false;
         }
-        // add a forward move to the path
-        plan[plan_steps++] = 0;
-        path.push(Move_t::FORWARD);
+        if (prev_terrain != Terrain::WATER) {
+            // add a forward move to the path
+            plan[plan_steps++] = 0;
+            path.push(Move_t::FORWARD);
+        } else {
+            plan[plan_steps++] = 2;
+            path.push(Move_t::MOVE_ONTO_WATER);
+        }
 
         // if the bot has changed orientation since the last tile
         if (prev_parent != map[y][x].parent) {
