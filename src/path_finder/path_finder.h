@@ -42,7 +42,8 @@
 enum class Move_t: uint8_t {
     FORWARD,
     TURN_LEFT,
-    TURN_RIGHT
+    TURN_RIGHT,
+    MOVE_ONTO_WATER
 };
 
 class PathFinder {

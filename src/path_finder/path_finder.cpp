@@ -13,7 +13,8 @@ Terrain course[6][6] = {
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
 };
 */
-
+/*
+// complex course
 Terrain course[6][6] = {
     {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
@@ -21,6 +22,18 @@ Terrain course[6][6] = {
     {Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD}
+};
+*/
+
+// across water
+Terrain course[6][6] = {
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    //{Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER},
 };
 
 void PathFinder::init() {
@@ -151,9 +164,9 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                             h_cost+= GRAVEL_COST;
                         else if (map[ny][nx].terrain == Terrain::SAND)
                             h_cost+= SAND_COST;
-                        else if (map[ny][nx].terrain == WATER)
+                        else if (map[ny][nx].terrain == Terrain::WATER)
                             h_cost+= WATER_COST;
-                        else if (map[ny][nx].terrain == UNKNOWN)
+                        else if (map[ny][nx].terrain == Terrain::UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
                         g_cost = TILE_COST + map[y][x].g_cost;
@@ -212,6 +225,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
             path_populated = true;
             return true;
         }
+        Terrain prev_terrain = map[y][x].terrain;
         // store the previous parent
         prev_parent = map[y][x].parent;
         // move backward in the path
@@ -223,9 +237,14 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                     + String(plan_steps));
             return false;
         }
-        // add a forward move to the path
-        plan[plan_steps++] = 0;
-        path.push(Move_t::FORWARD);
+        if (prev_terrain != Terrain::WATER) {
+            // add a forward move to the path
+            plan[plan_steps++] = 0;
+            path.push(Move_t::FORWARD);
+        } else {
+            plan[plan_steps++] = 2;
+            path.push(Move_t::MOVE_ONTO_WATER);
+        }
 
         // if the bot has changed orientation since the last tile
         if (prev_parent != map[y][x].parent) {
