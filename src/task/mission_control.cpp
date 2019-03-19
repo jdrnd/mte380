@@ -243,18 +243,42 @@ namespace MissionControl {
 
         // When we've completed our last command pull a new one from the path and execute it
         Move_t next_move;
-
         pathfinder.path.pop_into(next_move);
+
+        // Never drive into unknown territory
+        if (next_move == Move_t::FORWARD) {
+            uint8_t next_x, next_y;
+            get_front_square(x_pos, y_pos, orientation, next_x, next_y);
+
+            if (pathfinder.map[next_x][next_y].terrain == Terrain::UNKNOWN) {
+                    DEBUG_PRINT("Determing next square type");
+                    pathfinder.map[next_x][next_y].terrain = colorsensor.curr_terrain;
+
+                    // Recalculate path
+                    pathfinder.planPath();
+
+                    Serial.println("Steps: " + String(pathfinder.path.size()));
+                    String s = "";
+                    for(size_t i = 0; i < pathfinder.path.size(); i++)
+                        s = s + String(pathfinder.plan[i]) + ",";
+                    DEBUG_PRINT(s);
+                    pathfinder.path.pop_into(next_move);
+            }
+        }
 
         switch(next_move) {
             case Move_t::FORWARD:
+                DEBUG_PRINT("Path planning executing move");
                 MotorControl::send_command(Command_t::DRIVE, 30);
+                get_front_square(x_pos, y_pos, orientation, x_pos, y_pos);
                 break;
             case Move_t::TURN_LEFT:
-                MotorControl::send_command(Command_t::TURN, -90);
+                DEBUG_PRINT("Path planning executing left turn");
+                MotorControl::send_command(Command_t::TURN, 90);
                 break;
             case Move_t::TURN_RIGHT:
-                MotorControl::send_command(Command_t::TURN, 90);
+            DEBUG_PRINT("Path planning executing right turn");
+                MotorControl::send_command(Command_t::TURN, -90);
                 break;
             default:
                 break;
@@ -267,21 +291,23 @@ namespace MissionControl {
         orientation %= 4;
 
         switch (orientation) {
+            // Along x-axis
             case 0:
-                x = curr_x;
-                y = curr_y + 1;
-                break;
-            case 1:
                 x = curr_x + 1;
                 y = curr_y;
                 break;
-            case 2:
+            // Along y-axis
+            case 1:
                 x = curr_x;
-                y = curr_y -1;
+                y = curr_y + 1;
+                break;
+            case 2:
+                x = curr_x - 1;
+                y = curr_y;
                 break;
             case 3:
-                x = curr_x -1;
-                y = curr_y;
+                x = curr_x;
+                y = curr_y - 1;
                 break;
             default:
                 break;

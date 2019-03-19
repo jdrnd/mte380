@@ -2,7 +2,10 @@
 #include <math.h>
 #include "path_finder/path_finder.h"
 
+<<<<<<< HEAD
 /*
+=======
+>>>>>>> path finding in bug state
 Terrain course[6][6] = {
     {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
@@ -11,6 +14,7 @@ Terrain course[6][6] = {
     {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::SAND, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
 };
+<<<<<<< HEAD
 */
 
 Terrain course[6][6] = {
@@ -21,6 +25,8 @@ Terrain course[6][6] = {
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD}
 };
+=======
+>>>>>>> path finding in bug state
 
 void PathFinder::init() {
     planned = false;
@@ -150,6 +156,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                             h_cost+= GRAVEL_COST;
                         else if (map[ny][nx].terrain == Terrain::SAND)
                             h_cost+= SAND_COST;
+
                         else if (map[ny][nx].terrain == Terrain::UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
