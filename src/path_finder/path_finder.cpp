@@ -2,14 +2,13 @@
 #include <math.h>
 #include "path_finder/path_finder.h"
 
-
 Terrain course[6][6] = {
-    {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WATER, Terrain::GRAVEL, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WATER, Terrain::WOOD, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::SAND, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
+    {Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD}
 };
 
 void PathFinder::init() {
@@ -24,8 +23,11 @@ void PathFinder::init() {
     clearPlan();
     for(size_t i = 0; i < TILE_ROWS; i++)
         for(size_t j = 0; j < TILE_COLS; j++)
-            map[i][j].terrain = course[i][j];
-            //map[i][j].terrain = Terrain::UNKNOWN; //getRandomTerrain();
+            #ifdef USE_KNOWN_MAP
+                map[i][j].terrain = course[i][j];
+            #else
+                map[i][j].terrain = Terrain::UNKNOWN; //getRandomTerrain();
+            #endif
 }
 
 void PathFinder::clearPlan() {
