@@ -18,6 +18,7 @@
 #define TURN_COST 6 // (approximately 0.524 of the TILE_COST)
 #define SAND_COST 5 // in addition to the base tile cost
 #define GRAVEL_COST 2 // again in addition
+#define WATER_COST 500 // again in addition
 #define SAND_TURN_COST (1000 - TURN_COST) // cost to turn in the sand
 
 /* NOTE: all rotation and parent directions are encoded as 0,1,2,3

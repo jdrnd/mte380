@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <math.h>
+#include <common.h>
 #include "path_finder/path_finder.h"
 
 void PathFinder::init() {
@@ -117,8 +118,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 int8_t ny = y + Y_DIR[dir];
                 // if the neighbour is in map bounds
                 if (nx < TILE_COLS && nx >= 0 && ny < TILE_ROWS && ny >= 0)
-                    // is the tile isn't water and it's not in closed
-                    if (map[ny][nx].terrain != WATER && !map[ny][nx].inClosed)
+                    // it's not in closed
+                    if (!map[ny][nx].inClosed) // && map[ny][nx].terrain != WATER
                     {
                         // compute the h_cost if the bot was to move to the tile
                         h_cost = TILE_COST * (abs(target_x - nx) 
@@ -127,6 +128,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                             h_cost+= GRAVEL_COST;
                         else if (map[ny][nx].terrain == SAND)
                             h_cost+= SAND_COST;
+                        else if (map[ny][nx].terrain == WATER)
+                            h_cost+= WATER_COST;
                         else if (map[ny][nx].terrain == UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
@@ -193,7 +196,7 @@ bool PathFinder::createPath() {
         y+= Y_DIR[prev_parent];
         // make sure the new tile is in the map
         if (x < 0 || x >= TILE_COLS || y < 0 || y >= TILE_ROWS) {
-            Serial.println("Error while creating plan, out of bounds at step: " 
+            DEBUG_PRINT("Error while creating plan, out of bounds at step: " 
                     + String(plan_steps));
             return false;
         }
@@ -208,7 +211,7 @@ bool PathFinder::createPath() {
                 // the bot turned right
                 plan[plan_steps++] = -1;
             else { // the parent tile points back at the current tile
-                Serial.println("Error while creating plan, repeat tile at step: " 
+                DEBUG_PRINT("Error while creating plan, repeat tile at step: " 
                     + String(plan_steps));
                 return false;
             }
