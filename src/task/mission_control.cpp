@@ -3,7 +3,7 @@
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::MOVE;
+    State_t state = State_t::CANDLE_HOMING;
     static uint64_t count = 0;
 
     Terrain map[6][6];
@@ -259,7 +259,7 @@ namespace MissionControl {
 
                     Serial.println("Steps: " + String(pathfinder.path.size()));
                     String s = "";
-                    for(size_t i = 0; i < pathfinder.path.size(); i++)
+                    for(int8_t i = pathfinder.path.size() - 1; i >= 0; i--)
                         s = s + String(pathfinder.plan[i]) + ",";
                     DEBUG_PRINT(s);
                     pathfinder.path.pop_into(next_move);
