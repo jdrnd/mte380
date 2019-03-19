@@ -2,6 +2,7 @@
 #include <math.h>
 #include "path_finder/path_finder.h"
 
+/*
 Terrain course[6][6] = {
     {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
@@ -9,6 +10,16 @@ Terrain course[6][6] = {
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::SAND, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
+};
+*/
+
+Terrain course[6][6] = {
+    {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WATER, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD}
 };
 
 void PathFinder::init() {
@@ -257,7 +268,7 @@ Terrain PathFinder::getTerrain(uint8_t x, uint8_t y) {
 }
 
 void PathFinder::printMapTerrain() {
-    String s;
+    String s = "\n";
     for(int8_t i = TILE_ROWS - 1; i >= 0; i--) {
         for(size_t j = 0; j < TILE_COLS; j++)
             s = s + (uint8_t)map[i][j].terrain + ",";
@@ -267,7 +278,7 @@ void PathFinder::printMapTerrain() {
 }
 
 void PathFinder::printMapParents() {
-    String s;
+    String s = "\n";
     for(int8_t i = TILE_ROWS - 1; i >= 0; i--) {
         for(size_t j = 0; j < TILE_COLS; j++)
             s = s + map[i][j].parent + ",";
@@ -277,7 +288,7 @@ void PathFinder::printMapParents() {
 }
 
 void PathFinder::printMapFCosts() {
-    String s;
+    String s = "\n";
     for(int8_t i = TILE_ROWS - 1; i >= 0; i--) {
         for(size_t j = 0; j < TILE_COLS; j++)
             s = s + map[i][j].f_cost + ",";

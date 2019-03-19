@@ -3,7 +3,7 @@
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::MOVE;
+    State_t state = State_t::CANDLE_HOMING;
     static uint64_t count = 0;
 
     Terrain map[6][6];
@@ -27,7 +27,7 @@ namespace MissionControl {
             pathfinder.printMapParents();
             Serial.println("Steps: " + String(pathfinder.path.size()));
             String s = "";
-            for(size_t i = 0; i < pathfinder.path.size(); i++)
+            for(int8_t i = pathfinder.path.size() - 1; i >= 0; i--)
                 s = s + String(pathfinder.plan[i]) + ",";
             DEBUG_PRINT(s);
         }
@@ -64,20 +64,65 @@ namespace MissionControl {
 
     void do_candle_homing() {
         DEBUG_PRINT("Candle homing")
-        static bool turning = false;
+        static bool turningLeft = false;
+        static bool turningRight = false;
+        static bool approaching;
         static bool candleFound = false;
 
         static bool positioning_done = false;
 
-        if (MotorControl::command_queue.size() > 0) return;
+        //if (MotorControl::command_queue.size() > 0) return;
 
+        /*
         if (!candleFound && MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
             DEBUG_PRINT("scanning for candle");
             resetFlameDetection();
-            MotorControl::send_command(Command_t::TURN, -360);
+            //MotorControl::send_command(Command_t::TURN, -360);
+            //MotorControl::send_command(Command_t::TURN, -70);
+            //MotorControl::send_command(Command_t::TURN, +70);
             positioning_done = true;
+            approaching = false;
+        }*/
+
+        if(!candleFound && MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
+            if (turningRight) turningRight = false;
+            if (turningLeft) turningLeft = false;
+            if (approaching) approaching = false;
         }
 
+        PLOTTER_SERIAL.println("approaching: " + String(approaching) + 
+            " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight));
+        if(!candleFound && flameDetectedLeft && flameDetectedRight && !approaching) {
+            MotorControl::stopMotors();
+            MotorControl::command_queue.clear();
+            MotorControl::send_command(Command_t::DRIVE, 10);
+            turningRight = false;
+            turningLeft = false;
+            approaching = true;
+        } else if(!candleFound && flameDetectedRight && !flameDetectedLeft && !turningRight) {
+            DEBUG_PRINT("candle detected");
+            MotorControl::stopMotors();
+            MotorControl::command_queue.clear();
+            MotorControl::send_command(Command_t::TURN, -5);
+            turningRight = true;
+            turningLeft = false;
+            approaching = false;
+        } else if(!candleFound && flameDetectedLeft && !flameDetectedRight && !turningLeft) {
+            DEBUG_PRINT("candle detected");
+            MotorControl::stopMotors();
+            MotorControl::command_queue.clear();
+            MotorControl::send_command(Command_t::TURN, 5);
+            turningLeft = true;
+            turningRight = false;
+            approaching = false;
+        }
+
+        if (!candleFound && approaching) {
+            //rangefinders.front
+
+        }
+
+        /*
         if(!candleFound && flameDetected) {
             DEBUG_PRINT("candle detected");
             MotorControl::stopMotors();
@@ -101,6 +146,7 @@ namespace MissionControl {
             state = State_t::NONE;
             count = 0;
         }
+        */
     }
     
     void do_explore() {
@@ -129,7 +175,7 @@ namespace MissionControl {
 
                     Serial.println("Steps: " + String(pathfinder.path.size()));
                     String s = "";
-                    for(size_t i = 0; i < pathfinder.path.size(); i++)
+                    for(int8_t i = pathfinder.path.size() - 1; i >= 0; i--)
                         s = s + String(pathfinder.plan[i]) + ",";
                     DEBUG_PRINT(s);
                     pathfinder.path.pop_into(next_move);

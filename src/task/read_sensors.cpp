@@ -49,6 +49,8 @@ void read_sensors() {
     magnetics.detectMagnet();
 
     detectFlame();
+    detectFlameRight();
+    detectFlameLeft();
 
     #ifdef RUN_GYRO2
     gyro.read();
