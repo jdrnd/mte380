@@ -106,9 +106,6 @@ class PathFinder {
         uint8_t parent;
     };
 
-    // map of all tiles on the field
-    tile map[TILE_ROWS][TILE_ROWS];
-
     // Holds the x component of the direction vector
     const int8_t X_DIR[4] = {1,0,-1,0};
 
@@ -184,14 +181,6 @@ class PathFinder {
         Note: the plan is populated in reverse order */
         int8_t plan[MAX_PLAN_SIZE];
 
-        // TODO wrap this in accessor functions
-        etl::queue<Move_t, UINT8_MAX, etl::memory_model::MEMORY_MODEL_SMALL> path;
-        // map of all tiles on the field
-        Tile map[TILE_ROWS][TILE_ROWS];
-
-        /* The plan to move from the current bot position to the target. 
-        Note: the plan is populated in reverse order */
-        int8_t plan[MAX_PLAN_SIZE];
 }; // class PathFinder
 
 #endif // PATH_FINDER_H

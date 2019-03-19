@@ -3,6 +3,7 @@
 #include <common.h>
 #include "path_finder/path_finder.h"
 
+/*
 Terrain course[6][6] = {
     {Terrain::WATER, Terrain::GRAVEL, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WATER, Terrain::WOOD, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},

@@ -9,7 +9,7 @@
 #include <ArduinoSTL.h>
 
 // Start with the map state known
-//#define USE_KNOWN_MAP
+#define USE_KNOWN_MAP
 
 #define RUN_LOGGING
 
