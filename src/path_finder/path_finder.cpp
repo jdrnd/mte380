@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <math.h>
+#include <common.h>
 #include "path_finder/path_finder.h"
 
 /*
@@ -140,8 +141,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 int8_t ny = y + Y_DIR[dir];
                 // if the neighbour is in map bounds
                 if (nx < TILE_COLS && nx >= 0 && ny < TILE_ROWS && ny >= 0)
-                    // is the tile isn't water and it's not in closed
-                    if (map[ny][nx].terrain != Terrain::WATER && !map[ny][nx].inClosed)
+                    // it's not in closed
+                    if (!map[ny][nx].inClosed) // && map[ny][nx].terrain != WATER
                     {
                         // compute the h_cost if the bot was to move to the tile
                         h_cost = TILE_COST * (abs(target_x - nx) 
@@ -150,8 +151,9 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                             h_cost+= GRAVEL_COST;
                         else if (map[ny][nx].terrain == Terrain::SAND)
                             h_cost+= SAND_COST;
-
-                        else if (map[ny][nx].terrain == Terrain::UNKNOWN)
+                        else if (map[ny][nx].terrain == WATER)
+                            h_cost+= WATER_COST;
+                        else if (map[ny][nx].terrain == UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
                         g_cost = TILE_COST + map[y][x].g_cost;
