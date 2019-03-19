@@ -1,5 +1,18 @@
 #include "mission_control.h"
 
+const Position sandpits[NUM_SAND_POSITIONS] = {
+    Position{1,4},
+    Position{2,2},
+    Position{4,1}
+};
+
+const Position scan_positions[NUM_SCAN_POSITIONS] = {
+    Position{2,1},
+    Position{1,3},
+    Position{3,4},
+    Position{4,2}
+};
+
 namespace MissionControl {
     // this task = t_missionControl
 
@@ -19,7 +32,7 @@ namespace MissionControl {
         pathfinder.init();
 
         //pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, 1);
-        pathfinder.setBotPosition(0, 1, 1);
+        pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, STARTING_ORIENTATION);
         pathfinder.printMapTerrain();
         pathfinder.setTargetPosition(5,5);
         
@@ -27,7 +40,7 @@ namespace MissionControl {
             pathfinder.printMapParents();
             Serial.println("Steps: " + String(pathfinder.path.size()));
             String s = "";
-            for(int8_t i = pathfinder.path.size() - 1; i >= 0; i--)
+            for(int8_t i = pathfinder.plan_steps - 1; i >= 0; i--)
                 s = s + String(pathfinder.plan[i]) + ",";
             DEBUG_PRINT(s);
         }
@@ -42,10 +55,9 @@ namespace MissionControl {
             case State_t::CANDLE_HOMING:
                 do_candle_homing();
                 break;
-            case State_t::EXPLORE:
-                do_explore();
             case State_t::MOVE:
                 do_move_path();
+                break;
             default:
                 break;
         };
@@ -149,52 +161,26 @@ namespace MissionControl {
         }
         */
     }
-    
-    void do_explore() {
-
-    }
 
     void do_move_path() {
         if (MotorControl::current_command.status != CommandStatus::DONE) return;
         if (pathfinder.path.empty()) return;
 
         // When we've completed our last command pull a new one from the path and execute it
-        Move_t next_move;
+        Move next_move;
         pathfinder.path.pop_into(next_move);
 
-        // Never drive into unknown territory
-        if (next_move == Move_t::FORWARD) {
-            uint8_t next_x, next_y;
-            get_front_square(x_pos, y_pos, orientation, next_x, next_y);
-
-            if (pathfinder.map[next_x][next_y].terrain == Terrain::UNKNOWN) {
-                    DEBUG_PRINT("Determing next square type");
-                    pathfinder.map[next_x][next_y].terrain = colorsensor.curr_terrain;
-
-                    // Recalculate path
-                    pathfinder.planPath();
-
-                    Serial.println("Steps: " + String(pathfinder.path.size()));
-                    String s = "";
-                    for(int8_t i = pathfinder.path.size() - 1; i >= 0; i--)
-                        s = s + String(pathfinder.plan[i]) + ",";
-                    DEBUG_PRINT(s);
-                    pathfinder.path.pop_into(next_move);
-            }
-        }
-
-        switch(next_move) {
-            case Move_t::FORWARD:
+        switch(next_move.type) {
+            case FORWARD:
                 DEBUG_PRINT("Path planning executing move");
-                MotorControl::send_command(Command_t::DRIVE, 30);
-                get_front_square(x_pos, y_pos, orientation, x_pos, y_pos);
+                MotorControl::send_command(Command_t::DRIVE, next_move.value);
                 break;
-            case Move_t::TURN_LEFT:
+            case TURN_LEFT:
                 DEBUG_PRINT("Path planning executing left turn");
                 MotorControl::send_command(Command_t::TURN, 90);
                 break;
-            case Move_t::TURN_RIGHT:
-            DEBUG_PRINT("Path planning executing right turn");
+            case TURN_RIGHT:
+                DEBUG_PRINT("Path planning executing right turn");
                 MotorControl::send_command(Command_t::TURN, -90);
                 break;
             default:

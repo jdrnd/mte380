@@ -56,7 +56,9 @@ void read_sensors() {
     gyro.read();
     #endif
     
+    #ifdef RUN_COLORSENSOR
     colorsensor.read_terrain(rangefinders.shortrange.last_reading);
+    #endif
 
     motors.left->readDistance();
     motors.right->readDistance();

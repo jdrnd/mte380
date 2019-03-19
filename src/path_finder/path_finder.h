@@ -25,9 +25,9 @@
 
 #define TILE_COST 10
 #define TURN_COST 6 // (approximately 0.524 of the TILE_COST)
-#define SAND_COST 20 // in addition to the base tile cost
-#define GRAVEL_COST 10 // again in addition
 #define WATER_COST 500 // again in addition
+#define SAND_COST 30 // in addition to the base tile cost
+#define GRAVEL_COST 30 // again in addition
 #define SAND_TURN_COST (1000 - TURN_COST) // cost to turn in the sand
 
 /* NOTE: all rotation and parent directions are encoded as 0,1,2,3
@@ -39,11 +39,16 @@
         3 - down
 */
 
-enum class Move_t: uint8_t {
+enum Move_t {
     FORWARD,
     TURN_LEFT,
     TURN_RIGHT,
     MOVE_ONTO_WATER
+};
+
+struct Move {
+    Move_t type;
+    int16_t value;
 };
 
 class PathFinder {
@@ -79,33 +84,6 @@ class PathFinder {
     // The y target of the bot
     uint8_t target_y;
 
-    // the number of steps in the plan
-    uint8_t plan_steps;
-
-    // Stores all data required to plan a path
-    struct tile {
-        /*  0: water,
-            1: wood,
-            2: gravel,
-            3: sand, 
-            4: unknown but will be discovered once the path is executed,
-            5: unknown undiscovered */
-        Terrain terrain; // the type of terrain in the tile
-        /* The distance from the tile to the target plus the cost of progressing
-            through the tile */
-        uint16_t h_cost;
-        // The cost of getting to the tile from the start tile
-        uint16_t g_cost;
-        // g_cost + h_cost
-        uint16_t f_cost;
-        // true if the tile has been discovered and assigned a cost
-        bool inOpen;
-        // true if the tile has been evaluated
-        bool inClosed;
-        /* the direction from which the cost was calculated, i.e. points to the previous tile */
-        uint8_t parent;
-    };
-
     // Holds the x component of the direction vector
     const int8_t X_DIR[4] = {1,0,-1,0};
 
@@ -117,6 +95,9 @@ class PathFinder {
 
     // find the tile with the lowest f_cost in the open set
     void findNext(uint8_t & best_x, uint8_t & best_y);
+
+    // Copy the plan array to the path stack, perform optimizations
+    void copyPlanToPath();
 
     public:
         void init();
@@ -181,6 +162,8 @@ class PathFinder {
         Note: the plan is populated in reverse order */
         int8_t plan[MAX_PLAN_SIZE];
 
+        // the number of steps in the plan
+        uint8_t plan_steps;
 }; // class PathFinder
 
 #endif // PATH_FINDER_H

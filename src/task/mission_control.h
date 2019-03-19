@@ -29,6 +29,21 @@ extern Rangefinders rangefinders;
 
 extern Task t_missionControl;
 
+#define STARTING_X_POS 0
+#define STARTING_Y_POS 0
+#define STARTING_ORIENTATION 1 // along y-axis, towards center
+
+#define NUM_SCAN_POSITIONS 4
+#define NUM_SAND_POSITIONS 3
+
+struct Position {
+    uint8_t x;
+    uint8_t y;
+};
+
+extern const Position sandpits[NUM_SAND_POSITIONS];
+extern const Position scan_positions[NUM_SCAN_POSITIONS];
+
 namespace MissionControl {
 
     extern int8_t orientation;
@@ -48,7 +63,6 @@ namespace MissionControl {
     void run();
 
     void do_candle_homing();
-    void do_explore();
     void do_move_path();
 
 

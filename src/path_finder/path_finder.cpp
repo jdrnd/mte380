@@ -3,37 +3,14 @@
 #include <common.h>
 #include "path_finder/path_finder.h"
 
-/*
-Terrain course[6][6] = {
-    {Terrain::WATER, Terrain::GRAVEL, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WATER, Terrain::WOOD, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::SAND, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
-};
-*/
-/*
-// complex course
-Terrain course[6][6] = {
-    {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
-    {Terrain::WATER, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD}
-};
-*/
 
-// across water
 Terrain course[6][6] = {
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    //{Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER, Terrain::WATER},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::SAND, Terrain::WOOD, Terrain::WOOD, Terrain::WATER},
+    {Terrain::GRAVEL, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::SAND, Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD}
 };
 
 void PathFinder::init() {
@@ -176,8 +153,9 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                         // if the bot has to turn
                         if (map[y][x].parent != (dir + 2) % 4) {
                             g_cost += TURN_COST;
-                            if (map[ny][nx].terrain == Terrain::SAND)
+                            if (map[ny][nx].terrain == Terrain::SAND || map[ny][nx].terrain == Terrain::GRAVEL) {
                                 g_cost += SAND_TURN_COST;
+                            } 
                         }
                         /* if the resulting f_cost is better than the f_cost 
                             currently in the neighbour tile */
@@ -226,6 +204,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         // found the bot's tile
         if (x == bot_x && y == bot_y) {
             path_populated = true;
+            copyPlanToPath();
             return true;
         }
         Terrain prev_terrain = map[y][x].terrain;
@@ -240,6 +219,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                     + String(plan_steps));
             return false;
         }
+<<<<<<< HEAD
         if (prev_terrain != Terrain::WATER) {
             // add a forward move to the path
             plan[plan_steps++] = 0;
@@ -248,18 +228,20 @@ bool PathFinder::planPath(int8_t unknown_cost) {
             plan[plan_steps++] = 2;
             path.push(Move_t::MOVE_ONTO_WATER);
         }
+=======
+        // add a forward move to the path
+        plan[plan_steps++] = 0;
+>>>>>>> switched to new course, optimized trajectory
 
         // if the bot has changed orientation since the last tile
         if (prev_parent != map[y][x].parent) {
             if ((map[y][x].parent + 1) % 4 == prev_parent) {
                 // the bot turned left
                 plan[plan_steps++] = 1;
-                path.push(Move_t::TURN_LEFT);
             }
             else if ((prev_parent + 1) % 4 == map[y][x].parent) {
                 // the bot turned right
                 plan[plan_steps++] = -1;
-                path.push(Move_t::TURN_RIGHT);
             }
             else { // the parent tile points back at the current tile
                 DEBUG_PRINT("Error while creating plan, repeat tile at step: " 
@@ -267,12 +249,36 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 return false;
             }
         }
-        DEBUG_PRINT(path.size());
     }
     // path is too long for path array
     path_populated = false;
     return false;
 }
+
+// Copy the plan array into the path, flattening multiple move commands into a single command
+void PathFinder::copyPlanToPath() {
+    uint8_t num_forward_moves = 0;
+
+    for (int i=plan_steps-1; i>=0; i--) {
+        DEBUG_PRINT(i);
+        if (plan[i] != 0) {
+            if (num_forward_moves != 0) {
+                path.push(Move{FORWARD, 30*num_forward_moves});
+                num_forward_moves = 0;
+            }
+            if (plan[i] == 1) {
+                path.push(Move{TURN_LEFT, 90});
+            } else if (plan[i] == -1) {
+                path.push(Move{TURN_RIGHT, -90});
+            }
+        }
+        else if (plan[i] == 0) {
+            num_forward_moves++;
+        }
+    }
+    if (num_forward_moves != 0) path.push(Move{FORWARD, 30*num_forward_moves});
+}
+
 
 Terrain PathFinder::getRandomTerrain() {
     return TILE_PROBABILITY[(uint8_t)(random(0,36))];

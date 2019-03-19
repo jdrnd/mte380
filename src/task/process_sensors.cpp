@@ -33,8 +33,10 @@ void init_process_sensors() {
 void process_sensors() {
     DEBUG_PRINT("Process Sensors")
 
+    #ifdef RUN_IMU
     Accel accel = imu->getAccel();
     Orientation ypr = imu->getYPR();
+    #endif
 
     //magnetics.logReadings();
     if (flameDetected) {

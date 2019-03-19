@@ -15,6 +15,7 @@
 
 //#define RUN_LIDARS
 //#define RUN_IMU
+//#define RUN_COLORSENSOR
 
 //#define LOG_MOTOR_CONTROL
 
@@ -22,4 +23,4 @@
 #define PLOTTER_SERIAL Serial3
 
 #define DEBUG_PRINT(x) Serial.print(millis()); Serial.print(" "); Serial.print(__FILE__); Serial.print(":"); Serial.print(__LINE__); Serial.print(" - "); Serial.println(x);
-#endif
+#endif // CONFIG_H
