@@ -21,7 +21,7 @@ namespace MissionControl {
         pathfinder.init();
 
         //pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, 1);
-        pathfinder.setBotPosition(0, 0, 1);
+        pathfinder.setBotPosition(0, 1, 1);
         pathfinder.printMapTerrain();
         pathfinder.setTargetPosition(5,5);
         

@@ -13,7 +13,7 @@
 
 #define RUN_LOGGING
 
-#define RUN_LIDARS
+//#define RUN_LIDARS
 //#define RUN_IMU
 
 //#define LOG_MOTOR_CONTROL
