@@ -24,7 +24,7 @@
 */
 
 #define TILE_COST 10
-#define TURN_COST 6 // (approximately 0.524 of the TILE_COST)
+#define TURN_COST 19 // in addition to tile cost
 #define WATER_COST 500 // again in addition
 #define SAND_COST 30 // in addition to the base tile cost
 #define GRAVEL_COST 30 // again in addition
