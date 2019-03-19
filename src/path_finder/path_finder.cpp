@@ -2,10 +2,7 @@
 #include <math.h>
 #include "path_finder/path_finder.h"
 
-<<<<<<< HEAD
-/*
-=======
->>>>>>> path finding in bug state
+
 Terrain course[6][6] = {
     {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
     {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
@@ -14,19 +11,6 @@ Terrain course[6][6] = {
     {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::SAND, Terrain::WOOD},
     {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
 };
-<<<<<<< HEAD
-*/
-
-Terrain course[6][6] = {
-    {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
-    {Terrain::WATER, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
-    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WATER, Terrain::WOOD, Terrain::WOOD}
-};
-=======
->>>>>>> path finding in bug state
 
 void PathFinder::init() {
     planned = false;
