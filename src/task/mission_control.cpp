@@ -3,7 +3,7 @@
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::CANDLE_HOMING;
+    State_t state = State_t::MOVE;
     static uint64_t count = 0;
 
     Terrain map[6][6];
@@ -21,7 +21,7 @@ namespace MissionControl {
         pathfinder.init();
 
         //pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, 1);
-        pathfinder.setBotPosition(0, 3, 1);
+        pathfinder.setBotPosition(0, 0, 1);
         pathfinder.printMapTerrain();
         pathfinder.setTargetPosition(5,5);
         

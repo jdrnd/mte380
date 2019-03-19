@@ -4,7 +4,7 @@
 #include "common.h"
 #include "terrain.h"
 
-#include "etl/queue.h"
+#include "etl/stack.h"
 
 #define TILE_ROWS 6
 #define TILE_COLS 6
@@ -25,8 +25,8 @@
 
 #define TILE_COST 10
 #define TURN_COST 6 // (approximately 0.524 of the TILE_COST)
-#define SAND_COST 5 // in addition to the base tile cost
-#define GRAVEL_COST 2 // again in addition
+#define SAND_COST 20 // in addition to the base tile cost
+#define GRAVEL_COST 10 // again in addition
 #define SAND_TURN_COST (1000 - TURN_COST) // cost to turn in the sand
 
 /* NOTE: all rotation and parent directions are encoded as 0,1,2,3
@@ -174,7 +174,7 @@ class PathFinder {
         };
 
         // TODO wrap this in accessor functions
-        etl::queue<Move_t, UINT8_MAX, etl::memory_model::MEMORY_MODEL_SMALL> path;
+        etl::stack<Move_t, UINT8_MAX> path;
         // map of all tiles on the field
         Tile map[TILE_ROWS][TILE_ROWS];
 

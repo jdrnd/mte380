@@ -8,6 +8,8 @@
 #include "ecl_user.h"
 #include <ArduinoSTL.h>
 
+// Start with the map state known
+//#define USE_KNOWN_MAP
 
 #define RUN_LOGGING
 
