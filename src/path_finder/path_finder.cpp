@@ -2,6 +2,15 @@
 #include <math.h>
 #include "path_finder/path_finder.h"
 
+Terrain course[6][6] = {
+    {Terrain::WATER, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WATER, Terrain::GRAVEL, Terrain::WATER, Terrain::WATER, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::GRAVEL, Terrain::SAND, Terrain::SAND, Terrain::WOOD},
+    {Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD, Terrain::WOOD}
+};
+
 void PathFinder::init() {
     planned = false;
     path_populated = false;
@@ -14,7 +23,8 @@ void PathFinder::init() {
     clearPlan();
     for(size_t i = 0; i < TILE_ROWS; i++)
         for(size_t j = 0; j < TILE_COLS; j++)
-            map[i][j].terrain = Terrain::UNKNOWN; //getRandomTerrain();
+            map[i][j].terrain = course[i][j];
+            //map[i][j].terrain = Terrain::UNKNOWN; //getRandomTerrain();
 }
 
 void PathFinder::clearPlan() {
@@ -68,7 +78,10 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         DEBUG_PRINT("Set bot and target before planning! ");
         return false;
     }
+
     clearPlan();
+    path.clear();
+
     planned = false;
     /* the tile (x,y) is the current tile that is being evaluated in the 
         algorithm, start at the starting position of the bot */
@@ -76,7 +89,6 @@ bool PathFinder::planPath(int8_t unknown_cost) {
     uint8_t y = bot_y;
     uint16_t count = 0; // number of steps the algorithm has taken
     
-    // TODO @JordanSlater rename this to DEBUG
     DEBUG_PRINT("Planning to Target: (" + String(target_x) + ", " 
         + String(target_y) + ")");
 
@@ -107,7 +119,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         {
             DEBUG_PRINT("Done planning path");
             planned = true;
-            return true;
+            break;
         } else {
             // evaluate at each of the cardinal neighbours of the current tile
             for(size_t dir = 0; dir < 4; dir++)
@@ -127,6 +139,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                             h_cost+= GRAVEL_COST;
                         else if (map[ny][nx].terrain == Terrain::SAND)
                             h_cost+= SAND_COST;
+
                         else if (map[ny][nx].terrain == Terrain::UNKNOWN)
                             h_cost+= unknown_cost;
                         // compute the g_cost of getting to the tile
@@ -166,17 +179,16 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         DEBUG_PRINT();
         */
     }
-    DEBUG_PRINT("Ran out of steps");
-    return false;
-}
-
-bool PathFinder::createPath() {
-    if (!planned)
+    
+    if (!planned) {
+        DEBUG_PRINT("Ran out of steps");
         return false;
-    path.clear();
+    }
+
     // work backwards from the target tile to the bot's tile
-    int8_t x = target_x;
-    int8_t y = target_y;
+    x = target_x;
+    y = target_y;
+
     // the parent of the previous tile
     uint8_t prev_parent;
     plan_steps = 0; 
@@ -227,26 +239,6 @@ bool PathFinder::createPath() {
     return false;
 }
 
-int8_t* PathFinder::retrievePlan(bool & success, uint8_t & steps) {
-    // make sure the path has actually been planned
-    if (planned) {
-        // if the path array has not been populated
-        if (!path_populated) {
-            // create the path and if that fails you can't return a path. 
-            if (!createPath()) {
-                success = false;
-                return NULL;
-            }
-        }
-        // path array is populated
-        success = true;
-        steps = plan_steps;
-        return plan;
-    }
-    success = false;
-    return NULL;
-}
-
 Terrain PathFinder::getRandomTerrain() {
     return TILE_PROBABILITY[(uint8_t)(random(0,36))];
 }
@@ -293,4 +285,3 @@ void PathFinder::printMapFCosts() {
     }
     DEBUG_PRINT(s);
 }
-

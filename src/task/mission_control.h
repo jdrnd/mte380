@@ -5,7 +5,6 @@
 #include <TaskSchedulerDeclarations.h>
 #include "etl/queue.h"
 
-
 #include "common.h"
 
 #include "motor_control.h"
@@ -20,6 +19,7 @@
 
 #define STARTING_X_POS 0
 #define STARTING_Y_POS 0
+#define STARTING_ORIENTATION 1 // along y-axis, towards center
 
 extern ColorSensor colorsensor;
 extern bool flameDetected;

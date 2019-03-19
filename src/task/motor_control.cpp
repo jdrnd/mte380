@@ -1,7 +1,7 @@
 #include "motor_control.h"
 
 // this task = t_motorControl
-namespace MotorControl{
+namespace MotorControl {
 
 etl::queue<Command, 255, etl::memory_model::MEMORY_MODEL_SMALL> command_queue;
 Command current_command;
@@ -110,8 +110,9 @@ void run_turn_command() {
 
         imu->zero_yaw();
         
-        motors.left->setSpeed(direction*MOTOR_TURN_SPEED);
-        motors.right->setSpeed(direction*-MOTOR_TURN_SPEED);
+        // negative direction is right, positive direction in left
+        motors.left->setSpeed(direction*-MOTOR_TURN_SPEED);
+        motors.right->setSpeed(direction*+MOTOR_TURN_SPEED);
         current_command.status = CommandStatus::RUNNING;
     }
 
