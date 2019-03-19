@@ -64,8 +64,13 @@ void setup() {
     //init_arm_servo();
     //lower_arm_servo();
     //delay(2000);
-    //raise_arm_servo();  
-    delay(2000);
+    //raise_arm_servo();
+    // init_damper();
+    // raise_damper();
+    // delay(2000);
+    // lower_damper();  
+    // delay(2000);
+    // fold_damper();
 }
 
 

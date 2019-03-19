@@ -26,6 +26,11 @@ void init_damper() {
     damper2.attach(DAMPER_SERVO_2);
 }
 
+void fold_damper() {
+    damper1.write(180);
+    damper2.write(0);
+}
+
 void lower_damper() {
     damper1.write(0);
     damper2.write(180);
@@ -34,4 +39,9 @@ void lower_damper() {
 void raise_damper() {
     damper1.write(90);
     damper2.write(90);
+}
+
+void deinit_damper() {
+    pinMode(DAMPER_SERVO_1, INPUT);
+    pinMode(DAMPER_SERVO_2, INPUT);
 }

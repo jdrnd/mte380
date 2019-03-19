@@ -1,7 +1,7 @@
 #include "motor_control.h"
 
 // this task = t_motorControl
-namespace MotorControl{
+namespace MotorControl {
 
 etl::queue<Command, 255, etl::memory_model::MEMORY_MODEL_SMALL> command_queue;
 Command current_command;
@@ -96,7 +96,7 @@ void run_turn_command() {
     if (current_command.status == CommandStatus::DONE) return;
     DEBUG_PRINT("RUNNING TURN");
 
-    uint16_t command_value = current_command.value;
+    int16_t command_value = current_command.value;
 
     // 1 is right, -1 is left
     int8_t direction = (current_command.value > 0) ? 1 : -1;
@@ -110,21 +110,20 @@ void run_turn_command() {
 
         imu->zero_yaw();
         
-        motors.left->setSpeed(direction*30);
-        motors.right->setSpeed(direction*-30);
-        DEBUG_PRINT(motors.left->speed_command);
+        // negative direction is right, positive direction in left
+        motors.left->setSpeed(direction*-MOTOR_TURN_SPEED);
+        motors.right->setSpeed(direction*+MOTOR_TURN_SPEED);
         current_command.status = CommandStatus::RUNNING;
     }
 
-
-    if (abs(motors.left->distance) > 19.6 && abs(motors.right->distance) > 19.6) {
+    if (abs(motors.left->distance) > abs((command_value/90)*18.7) && abs(motors.right->distance) > abs((command_value/90)*18.7)) {
         DEBUG_PRINT("doneturn");
-
         motors.stop();
         
         motors.left->resetDistance();
         motors.right->resetDistance();
 
+        MissionControl::orientation += command_value/90;
         delay_num = 0;
         current_command.status = CommandStatus::DONE;
     }
@@ -150,11 +149,8 @@ void run_current_command() {
             return;
         }
         if (!command_queue.empty()) {
-            DEBUG_PRINT("queue not empty")
             command_queue.pop_into(current_command);
             DEBUG_PRINT("Command recieved");
-            DEBUG_PRINT((int)current_command.type);
-            DEBUG_PRINT((int)current_command.value);
         }
     }
     switch(current_command.type) {

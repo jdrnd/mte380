@@ -41,20 +41,21 @@ void process_sensors() {
         DEBUG_PRINT("FLAME");
     }
     
-    PLOTTER_SERIAL.print(rangefinders.shortrange.last_reading);
-    PLOTTER_SERIAL.print(",");
-    PLOTTER_SERIAL.println((int)colorsensor.curr_terrain);
+    // PLOTTER_SERIAL.print(rangefinders.shortrange.last_reading);
+    // PLOTTER_SERIAL.print(",");
+    // PLOTTER_SERIAL.println((int)colorsensor.curr_terrain);
     
-    // PLOTTER_SERIAL.print(rangefinders.front.last_reading);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.print(rangefinders.back.last_reading);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.print(rangefinders.left.last_reading);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.print(rangefinders.right.last_reading);
-    // PLOTTER_SERIAL.print(",");
-    // PLOTTER_SERIAL.println(rangefinders.shortrange.last_reading);
-
+    /*
+    PLOTTER_SERIAL.print(rangefinders.front.last_reading);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(rangefinders.back.last_reading);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(rangefinders.left.last_reading);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(rangefinders.right.last_reading);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.println((int)(flameDetected==true));
+    */
 
     // PLOTTER_SERIAL.print(accel.x);
     // PLOTTER_SERIAL.print(",");

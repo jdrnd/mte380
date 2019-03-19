@@ -22,5 +22,7 @@ void raise_arm_servo();
 void init_damper();
 void lower_damper();
 void raise_damper();
+void fold_damper();
+void deinit_damper();
 
 #endif
