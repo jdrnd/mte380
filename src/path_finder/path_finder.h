@@ -154,7 +154,7 @@ class PathFinder {
         };
 
         // TODO wrap this in accessor functions
-        etl::stack<Move_t, UINT8_MAX> path;
+        etl::stack<Move, UINT8_MAX> path;
         // map of all tiles on the field
         Tile map[TILE_ROWS][TILE_ROWS];
 

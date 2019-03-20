@@ -139,11 +139,4 @@ void ColorSensor::read_terrain(uint16_t distance, bool debug = false)
     DEBUG_PRINT((uint8_t)curr_terrain);
 
 }
-
-/* Updates our terrain depending on the shortrange lidar reading we get
-void ColorSensor::update_terrain(uint16_t distance) {
-    if (distance > WATER_MIN_HEIGHT) {
-        curr_terrain = Terrain::WATER;
-    }
-}*/
 //PRIVATE__________________________________________________________________________________________

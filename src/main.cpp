@@ -17,19 +17,34 @@
 #include "task/process_sensors.h"
 #include "task/motor_control.h"
 #include "task/mission_control.h"
-
+#include "task/object_detection.h"
 #include "sensors/gyro.h"
-
 #include "common.h"//NEEDED FOR GYROS
 
 Motors motors;
 Photosensor candleSensor;
 Rangefinders rangefinders;
 
-bool objects[36];
-int16_t confidence[36];
+//STUFF for localizaiton
+bool objects[36] = {0};
+int16_t confidence[36] = {0};
+uint16_t X = 0;
+uint16_t Y = 0;
+uint16_t heading = 90;
 
-ColorSensor colorsensor;
+int16_t der_r = 0;
+int16_t der_l = 0;
+
+bool obj_r = false;
+bool obj_l = false;
+
+bool rel_r = true;
+bool rel_l = true;
+bool rel_f = true;
+bool rel_b = true;
+/////////////////////////////// local
+
+//ColorSensor colorsensor;
 Magnetics magnetics;
 Gyro gyro;
 
@@ -38,22 +53,25 @@ Scheduler taskManager;
 
 // Times in milliseconds
 Task t_readSensors(100UL, TASK_FOREVER, &init_sensors, &taskManager, true);
-Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
 Task t_motorControl(10UL, TASK_FOREVER, &MotorControl::init_motor_control, &taskManager, true);
 Task t_missionControl(100UL, TASK_FOREVER, &MissionControl::init, &taskManager, true);
+Task t_localize(100UL, TASK_FOREVER, &localize, &taskManager, true);
+Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
+
 // XBEE
 // 3.3 V
 // GND
 // DOUT -> Serial3 Rx
 // DIN -> Serial3 Tx
 // Reset -> digital pin 6
- #define XBEE_RESET_PIN 6
+#define XBEE_RESET_PIN 6
 
 extern Servo armservo;
 
-void setup() {
-    //init_damper();
+//int16_t leftValArray[5] = {0};//BB
+//int8_t counter = 0;//BB
 
+void setup() {
     Serial.begin(115200);
     Serial3.begin(115200);
     pinMode(XBEE_RESET_PIN, OUTPUT);
@@ -71,6 +89,7 @@ void setup() {
     // lower_damper();  
     // delay(2000);
     // fold_damper();
+    delay(2000);
 }
 
 

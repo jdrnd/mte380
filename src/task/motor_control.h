@@ -21,6 +21,8 @@ extern Motors motors;
 
 extern Magnetics magnetics;
 
+extern uint16_t correction;
+
 enum class Command_t: uint8_t {
     DRIVE,
     TURN,
@@ -51,6 +53,8 @@ namespace MotorControl {
     extern bool stopOnWater;
 
     void stopMotors();
+
+    void setCorrection(int16_t);//BB
 
     void init_motor_control();
     void motor_control();

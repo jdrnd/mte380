@@ -26,7 +26,7 @@ void init_sensors() {
     IR::init();
     //gyro.init();
 
-    colorsensor.initialize();
+    //colorsensor.initialize();
 
     read_sensors();
     // The next runs of this task will use the read_sensors callback function

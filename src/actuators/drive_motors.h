@@ -56,7 +56,7 @@ class Motors {
         static void leftMotorInterrupt();
         static void rightMotorInterrupt();
 
-        static void setSpeed(int8_t);
+        static void setSpeed(int8_t, int8_t);
         static void stop();
 };
 
@@ -69,6 +69,7 @@ class Motor {
 
         // Sets motor control parameters
         void setSpeed(int8_t);
+
         // Runs motor control
         void adjustSpeed();
 

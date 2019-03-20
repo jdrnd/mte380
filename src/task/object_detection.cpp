@@ -1,187 +1,233 @@
-
 #include "object_detection.h"
+#include "CircularBuffer.h"
 #include <Arduino.h>
 
-uint16_t* get_values(uint8_t amount, uint16_t* tail, uint16_t* buffer)
-{
-	uint16_t* values = new uint16_t[amount];
-	//if the tail has enough data points behind it
-	if(tail > buffer+amount-1)
+
+void localize(){
+	static CircularBuffer<uint16_t, 20, uint8_t> Xreadings;
+	static CircularBuffer<uint16_t, 20, uint8_t> Yreadings;
+
+	static int8_t cnt_l = 0;
+	static int8_t cnt_r = 0;
+	static int8_t cnt_latest_data_use_r = 0;
+	static int8_t cnt_latest_data_use_l = 0;
+	static int8_t cnt_after_object_l = 0;
+	static int8_t cnt_after_object_r = 0;
+	static int8_t cnt_calc_delay_l = 0;
+	static int8_t cnt_calc_delay_r = 0;
+
+	static bool use_prev_data_r = true;
+	static bool use_prev_data_l = true;
+	static bool wait_after_object_l = false;
+	static bool wait_after_object_r = false;
+
+	uint8_t r_size = rangefinders.right.readings_.size();
+	uint8_t l_size = rangefinders.left.readings_.size();
+	uint8_t f_size = rangefinders.front.readings_.size();
+	uint8_t b_size = rangefinders.back.readings_.size();
+	
+	rel_f = false;
+	rel_b = false;
+	rel_l = false;
+	rel_r = false;
+
+	//**OBJECT DETECTION**	
+	// scan with tail-->[size-1][-2][POI]EDGE[-4][-5][-6]<--old data
+	if(rangefinders.front.readings_.size() > 5)
 	{
-		for(uint8_t i = 0; i < amount; i++)
+		lidar_derivative();
+		if(abs(der_r) > THRESHOLD)
 		{
-			values[i] = *(tail-i);
+			cnt_r = 0;	
+			if(der_r < -THRESHOLD && !obj_r){ 
+				obj_r = true;
+				cnt_calc_delay_l = 0;
+			}
+			else if(der_r > THRESHOLD && obj_r)
+			{
+				uint8_t i = find_lowest_reading_index(LidarSensor::LIDAR_RIGHT, 10);
+				locate_coord_lin(LIDAR_RIGHT, rangefinders.left.readings_[l_size-1-i], Xreadings[Xreadings.size()-2-i], Yreadings[Yreadings.size()-2-i]);
+				wait_after_object_r = true;
+			}				
+		}
+		if(abs(der_l) > THRESHOLD)
+		{
+			cnt_l = 0;
+			if(der_l < -THRESHOLD && !obj_l){ 
+				obj_l = true;
+				cnt_calc_delay_r = 0;
+			}
+			else if(der_l > THRESHOLD && obj_l)
+			{
+				uint8_t i = find_lowest_reading_index(LidarSensor::LIDAR_LEFT, 10);
+				locate_coord_lin(LIDAR_LEFT, rangefinders.left.readings_[l_size-1-i], Xreadings[Xreadings.size()-2-i], Yreadings[Yreadings.size()-2-i]);
+				wait_after_object_l = true;
+			}				
+		}
+
+		//Below is a whole bunch of if statements that cause behaviour based on delays per cycle.
+		
+		//reset the flag if there was noise
+		if(cnt_l == OBJECT_DET_HARD_RESET)
+		{
+			obj_l = false;
+			cnt_l = 0;
+		}
+		if(cnt_r == OBJECT_DET_HARD_RESET) 
+		{
+			obj_r = false;
+			cnt_r = 0;
+		}
+		//wait for WAIT_AFTER_OBJECT cycles after an object to update the left right coord
+		if(wait_after_object_l)
+		{
+			cnt_after_object_l++;
+			if(cnt_after_object_l == WAIT_AFTER_OBJECT)
+			{
+				//setting obj_l allows the coord to be updated again
+				obj_l = false;
+				use_prev_data_r = false;
+				cnt_latest_data_use_r = 0;
+				cnt_after_object_l = 0;
+				wait_after_object_l = false;
+			}
+		}
+		if(wait_after_object_r)
+		{
+			cnt_after_object_r++;
+			if(cnt_after_object_r == WAIT_AFTER_OBJECT)
+			{
+				//setting obj_l allows the coord to be updated again
+				obj_r = false;
+				use_prev_data_r = false;
+				cnt_latest_data_use_r = 0;
+				cnt_after_object_r = 0;
+				wait_after_object_r = false;
+			}
+		}
+		
+
+	}
+
+	//**LOCALIZE the current X,Y value**
+	//check the reliability of each sensor
+
+	if(rangefinders.front.last_reading < FRONT_LIDAR_MAX)
+	{
+		rel_f = true;
+	}
+	if(rangefinders.back.last_reading < BACK_LIDAR_MAX)
+	{
+		rel_b = true;
+	}
+	if(rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] < LEFT_LIDAR_MAX && !obj_l)
+	{
+		rel_l = true;
+	}
+	if(rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] < RIGHT_LIDAR_MAX && !obj_r)
+	{
+		rel_r = true;
+	}
+
+	Xreadings.push(X);
+	Yreadings.push(Y);
+
+	//calculate the coord to the left or right
+	if(rel_r || rel_l)
+	{
+		// if both are reliable but right is closer to the wall, or if right is the only option
+		// the second case essentailly prevent the coord from being updated while an object is being passed on the left side
+		if((rel_r && rel_l && rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] <= rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l]) ||
+			(rel_r && !rel_l && !obj_l))
+		{
+			if(heading == 0) Y = rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET;
+			if(heading == 90) X = MAX_LENGTH_COURSE - (rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET);
+			if(heading == 180) Y = MAX_LENGTH_COURSE - (rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET);
+			if(heading == 270) X = rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET;	 
+		}
+		// if both are reliable and left is closer to the wall, or if left is the only option
+		// the second case essentailly prevent the coord from being updated while an object is being passed on the right side
+		else if((rel_r && rel_l && rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] > rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l]) ||
+				(rel_l && !rel_r && !obj_r))
+		{
+			if(heading == 0) Y = MAX_LENGTH_COURSE - rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] - LEFT_LIDAR_OFFSET;
+			if(heading == 90) X = rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] + LEFT_LIDAR_OFFSET;
+			if(heading == 180) Y = rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] + LEFT_LIDAR_OFFSET;
+			if(heading == 270) X = MAX_LENGTH_COURSE - rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] - LEFT_LIDAR_OFFSET;	
 		}
 	}
-	else
+	// Calculate the coord to the front or back
+	if(rel_b || rel_f)	
 	{
-		uint8_t data_at_end = amount-1-(tail-buffer);
-		for(uint8_t i = 0; i < amount-data_at_end; i++)
+		if((rel_f && rel_b && rangefinders.front.last_reading <= rangefinders.back.last_reading) ||
+			(rel_f && !rel_b))
 		{
-			values[i] = *(tail-i);
+			if(heading == 0) X = MAX_LENGTH_COURSE - rangefinders.front.last_reading - FRONT_LIDAR_OFFSET;
+			if(heading == 90) Y = MAX_LENGTH_COURSE - rangefinders.front.last_reading - FRONT_LIDAR_OFFSET;
+			if(heading == 180) X = rangefinders.front.last_reading + FRONT_LIDAR_OFFSET;
+			if(heading == 270) Y = rangefinders.front.last_reading + FRONT_LIDAR_OFFSET;	 
 		}
-		for(uint8_t i = amount-data_at_end; i<amount; i++)
+		else if((rel_f && rel_b && rangefinders.front.last_reading > rangefinders.back.last_reading) ||
+				(rel_b && !rel_f))
 		{
-			//get the data at the end of the circular buffer
-			values[i] = *(buffer+BUFF_SIZE-1-(amount-data_at_end-i));
+			if(heading == 0) X = rangefinders.back.last_reading + BACK_LIDAR_OFFSET;
+			if(heading == 90) Y = rangefinders.back.last_reading + BACK_LIDAR_OFFSET;
+			if(heading == 180) X = MAX_LENGTH_COURSE - rangefinders.back.last_reading - BACK_LIDAR_OFFSET;
+			if(heading == 270) Y = MAX_LENGTH_COURSE - rangefinders.back.last_reading - BACK_LIDAR_OFFSET;	
 		}
 	}
-	return &values[0];
+	cnt_r++;
+	cnt_l++;
+	cnt_latest_data_use_r++;
+	cnt_latest_data_use_l++;	
 }
 
-void scan_objects_lin(uint16_t heading, uint16_t X, uint16_t Y){
-	
-	// scan with tail-->[0][1][POI]EDGE[3][4][5]<--old data
-	// if there is enough data
-    if(rangefinders.front.readings_.size() > 6)
-	{
-		uint16_t* R = get_values(6, rangefinders.right.readings_.get_tail(), rangefinders.right.readings_.get_buffer());
-		uint16_t* L = get_values(6, rangefinders.left.readings_.get_tail(), rangefinders.left.readings_.get_buffer());
-
-		// if difference between i and i-1 then check prev 2 value and next 2 for consistency
-		uint32_t diff_R = abs(R[2] - R[3]);
-		uint32_t diff_L = abs(L[2] - L[3]);
-	
-		if(diff_R > THRESHOLD)
-		{
-			//check that previous values are consistent
-			if(abs(R[2]-R[4]) > THRESHOLD && abs(R[2]-R[5]) > THRESHOLD)
-			{
-				//check that the next two values are also a significant change to avoid noise
-				if(abs(R[3]-R[1]) > THRESHOLD && abs(R[3]-R[0]) > THRESHOLD)
-				{
-					//locate_coord_lin(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
-				}
-			}
-		}
-		if(diff_L > THRESHOLD)
-		{
-			if(abs(L[2]-L[4]) > THRESHOLD && abs(L[2]-L[5]) > THRESHOLD)
-			{
-				//check that the next two values are also a significant change to avoid noise
-				if(abs(L[3]-L[1]) > THRESHOLD && abs(L[3]-L[0]) > THRESHOLD)
-				{
-					//locate_coord_lin(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
-				}
-			}
-		}
-		// delete the arrays of lidar data
-		delete [] R;
-		delete [] L;
-	}		
-}
-
-void scan_objects_rot(uint16_t heading, uint16_t X, uint16_t Y)
+void lidar_derivative()
 {
-	//if there is enough data
-	if(rangefinders.front.readings_.size() > 6)
-	{
-		uint16_t* R = get_values(6, rangefinders.right.readings_.get_tail(), rangefinders.right.readings_.get_buffer());
-		uint16_t* L = get_values(6, rangefinders.left.readings_.get_tail(), rangefinders.left.readings_.get_buffer());
-		uint16_t* F = get_values(6, rangefinders.front.readings_.get_tail(), rangefinders.front.readings_.get_buffer());
-		uint16_t* B = get_values(6, rangefinders.back.readings_.get_tail(), rangefinders.back.readings_.get_buffer());
-
-		uint16_t diff_R = abs(R[3] - R[2]);
-		uint16_t diff_L = abs(L[3] - L[2]);
-		uint16_t diff_F = abs(F[3] - F[2]);
-		uint16_t diff_B = abs(B[3] - B[2]);
-		if(diff_R > THRESHOLD)
-		{
-            //check that previous values are consistent
-			if(abs(R[2]-R[4]) > THRESHOLD && abs(R[2]-R[5]) > THRESHOLD)
-			{
-				//check that the next two values are also a significant change to avoid noise
-				if(abs(R[3]-R[1]) > THRESHOLD && abs(R[3]-R[0]) > THRESHOLD)
-				{
-					//locate_coord_rot(heading, LIDAR_RIGHT, min(R[3], R[2]) + RIGHT_LIDAR_OFFSET, X, Y);
-				}
-			}
-        }
-		if(diff_L > THRESHOLD)
-		{
-			//check that the previous 2 values are consistent
-            if(abs(L[2]-L[4]) > THRESHOLD && abs(L[2]-L[5]) > THRESHOLD)
-			{
-				//check that the next two values are also a significant change to avoid noise
-				if(abs(L[3]-L[1]) > THRESHOLD && abs(L[3]-L[0]) > THRESHOLD)
-				{
-					//locate_coord_rot(heading, LIDAR_RIGHT, min(L[3], L[2]) + LEFT_LIDAR_OFFSET, X, Y);
-				}
-			}
-        }
-		if(diff_F > THRESHOLD)
-		{
-            //check that the previous 2 values are consistent
-            if(abs(F[2]-F[4]) > THRESHOLD && abs(F[2]-F[5]) > THRESHOLD)
-			{
-				//check that the next two values are also a significant change to avoid noise
-				if(abs(F[3]-F[1]) > THRESHOLD && abs(F[3]-F[0]) > THRESHOLD)
-				{
-					//locate_coord_rot(heading, LIDAR_RIGHT, min(F[3], F[2]) + FRONT_LIDAR_OFFSET, X, Y);
-				}
-			}
-        }
-		if(diff_B > THRESHOLD)
-		{
-            //check that the previous 2 values are consistent
-            if(abs(B[2]-B[4]) > THRESHOLD && abs(B[2]-B[5]) > THRESHOLD)
-			{
-				//check that the next two values are also a significant change to avoid noise
-				if(abs(B[3]-B[1]) > THRESHOLD && abs(B[3]-B[0]) > THRESHOLD)
-				{
-					//locate_coord_rot(heading, LIDAR_RIGHT, min(B[3], B[2]) + BACK_LIDAR_OFFSET, X, Y);
-				}
-			}
-        }
-		// delete the newly allocated data
-		delete [] R;
-		delete [] L;
-		delete [] F;
-		delete [] B;
-	}		
+    uint8_t size = rangefinders.right.readings_.size();
+    if(size > 5){
+            der_r =( (int16_t(rangefinders.right.readings_[size-1])-int16_t(rangefinders.right.readings_[size-2]) +
+                int16_t(rangefinders.right.readings_[size-2])-int16_t(rangefinders.right.readings_[size-3]) +
+                int16_t(rangefinders.right.readings_[size-3])-int16_t(rangefinders.right.readings_[size-4]))/3 );
+	}
+    size = rangefinders.left.readings_.size();
+    if(size > 5){
+            der_l =( (int16_t(rangefinders.left.readings_[size-1])-int16_t(rangefinders.left.readings_[size-2]) +
+                int16_t(rangefinders.left.readings_[size-2])-int16_t(rangefinders.left.readings_[size-3]) +
+                int16_t(rangefinders.left.readings_[size-3])-int16_t(rangefinders.left.readings_[size-4]))/3 );
+	}	
 }
 
-// heavily relies on us being able to maintain a cardinal direction
-void locate_coord_lin(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y)
+void locate_coord_lin(LidarSensor sensor, uint16_t diff, uint16_t x, uint16_t y)
 {
 	if(heading == 0)
 	{	
 		if (sensor == LIDAR_LEFT)
-			round_object_coord(X, Y + diff + LEFT_LIDAR_OFFSET);
+			round_object_coord(x, y + diff + LEFT_LIDAR_OFFSET);
 		else 
-			round_object_coord(X, Y - diff - RIGHT_LIDAR_OFFSET);
+			round_object_coord(x, y - diff - RIGHT_LIDAR_OFFSET);
 	}		
 	else if(heading == 90)
 	{
 		if(sensor == LIDAR_LEFT)
-			round_object_coord(X - diff - LEFT_LIDAR_OFFSET, Y);
+			round_object_coord(x - diff - LEFT_LIDAR_OFFSET, y);
 		else 
-			round_object_coord(X + diff + RIGHT_LIDAR_OFFSET, Y);
+			round_object_coord(x + diff + RIGHT_LIDAR_OFFSET, y);
 	}		
 	else if(heading == 180)
 	{
 		if(sensor == LIDAR_LEFT)
-			round_object_coord(X, Y - diff - LEFT_LIDAR_OFFSET);
+			round_object_coord(x, y - diff - LEFT_LIDAR_OFFSET);
 		else 
-			round_object_coord(X, Y + diff + RIGHT_LIDAR_OFFSET);
+			round_object_coord(x, y + diff + RIGHT_LIDAR_OFFSET);
 	}
 	else //(heading == 270)
 	{
 		if(sensor == LIDAR_LEFT)
-			round_object_coord(X + diff + LEFT_LIDAR_OFFSET, Y);
+			round_object_coord(x + diff + LEFT_LIDAR_OFFSET, y);
 		else 
-			round_object_coord(X - diff - RIGHT_LIDAR_OFFSET, Y);
+			round_object_coord(x - diff - RIGHT_LIDAR_OFFSET, y);
 	}
-}
-
-
-
-void locate_coord_rot(uint16_t heading, LidarSensor sensor, uint16_t diff, uint16_t X, uint16_t Y)
-{
-	double X_obj = X + diff*cos(heading*2*PI/180+0.5*PI*sensor);
-	double Y_obj = Y + diff*sin(heading*2*PI/180+0.5*PI*sensor);
-
-	round_object_coord(uint32_t(X_obj), uint32_t(Y_obj));
 }
 
 void round_object_coord(uint16_t X_obj,uint16_t Y_obj)
@@ -193,4 +239,37 @@ void round_object_coord(uint16_t X_obj,uint16_t Y_obj)
 		objects[y_coord*6 + x_coord] = true;
 		confidence[y_coord*6 + x_coord] +=1; //increase the confidence of an object in that block
 	}
+}
+
+uint8_t find_lowest_reading_index(LidarSensor sensor, uint8_t max)
+{
+	uint8_t min_dex = 0;
+	if(sensor == LidarSensor::LIDAR_LEFT)
+	{
+		uint8_t size = rangefinders.left.readings_.size();
+		uint16_t min_reading = 2000;
+		for(uint8_t i = 0; i < max; i++)
+		{
+			if(rangefinders.left.readings_[size-1-i] < min_reading)
+			{
+				min_reading = rangefinders.left.readings_[size-1-i];
+				min_dex = i;
+			}
+		}		
+	}
+	else if(sensor == LidarSensor::LIDAR_RIGHT)
+	{
+		uint8_t size = rangefinders.right.readings_.size();
+		uint16_t min_reading = 2000;
+		for(uint8_t i = 0; i < max; i++)
+		{
+			if(rangefinders.right.readings_[size-1-i] < min_reading)
+			{
+				min_reading = rangefinders.left.readings_[size-1-i];
+				min_dex = i;
+			}
+		}
+		
+	}
+	return min_dex;
 }
