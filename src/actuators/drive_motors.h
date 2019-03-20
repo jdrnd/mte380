@@ -69,6 +69,7 @@ class Motor {
 
         // Sets motor control parameters
         void setSpeed(int8_t);
+        void setSpeed(int8_t, int8_t); // with correction
 
         // Runs motor control
         void adjustSpeed();

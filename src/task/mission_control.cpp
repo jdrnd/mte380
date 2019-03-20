@@ -44,11 +44,6 @@ namespace MissionControl {
             DEBUG_PRINT(s);
         }
 
-        MotorControl::send_command(Command_t::DRIVE, 50);
-        MotorControl::send_command(Command_t::DRIVE, 500);//100
-        MotorControl::send_command(Command_t::DRIVE, 40);
-        MotorControl::send_command(Command_t::DRIVE, 40);
-        //MotorControl::send_command(Command_t::TURN, -90);
         t_missionControl.setCallback(&run);
     }
 
