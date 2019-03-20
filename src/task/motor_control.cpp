@@ -81,32 +81,30 @@ void run_drive_command() {
 
     uint16_t command_value = current_command.value;
 
+    #ifdef NO_MOTOR_RAMP
     motors.setSpeed(50, correction);
-
-
-        // PLOTTER_SERIAL.print(correction);
-        // PLOTTER_SERIAL.println(",");
-
-    // if (speed_command == 0) {
-    //     speed_command = 25*direction;
-    //     motors.setSpeed(speed_command, correction);
-    // }
-    // else if (abs(speed_command) == 25 && abs(leftD) > abs(command_value)/10 && abs(rightD) > abs(command_value)/10) {
-    //     speed_command = 50*direction;
-    //     motors.setSpeed(speed_command, correction);
-    // }
-    // else if (abs(speed_command) == 50 && abs(leftD) > abs(command_value)/5 && abs(rightD) > abs(command_value)/5) {
-    //     speed_command = 75*direction;
-    //     motors.setSpeed(speed_command, correction);
-    // }
-    // else if (abs(speed_command) == 75 && abs(leftD) > 0.8*abs(command_value) && abs(rightD) > 0.8*abs(command_value)) {
-    //     speed_command = 50*direction;
-    //     motors.setSpeed(speed_command, correction);
-    // }
-    // else if (abs(speed_command) == 50 && abs(leftD) > 0.9*abs(command_value) && abs(rightD) > 0.9*abs(command_value)) {
-    //     speed_command = 25*direction;
-    //     motors.setSpeed(speed_command, correction);
-    // }
+    #else
+    if (speed_command == 0) {
+        speed_command = 25*direction;
+        motors.setSpeed(speed_command, correction);
+    }
+    else if (abs(speed_command) == 25 && abs(leftD) > abs(command_value)/10 && abs(rightD) > abs(command_value)/10) {
+        speed_command = 50*direction;
+        motors.setSpeed(speed_command, correction);
+    }
+    else if (abs(speed_command) == 50 && abs(leftD) > abs(command_value)/5 && abs(rightD) > abs(command_value)/5) {
+        speed_command = 75*direction;
+        motors.setSpeed(speed_command, correction);
+    }
+    else if (abs(speed_command) == 75 && abs(leftD) > 0.8*abs(command_value) && abs(rightD) > 0.8*abs(command_value)) {
+        speed_command = 50*direction;
+        motors.setSpeed(speed_command, correction);
+    }
+    else if (abs(speed_command) == 50 && abs(leftD) > 0.9*abs(command_value) && abs(rightD) > 0.9*abs(command_value)) {
+        speed_command = 25*direction;
+        motors.setSpeed(speed_command, correction);
+    }
+    #endif
 
     // End, reset
     if (abs(leftD) > abs(command_value) || abs(rightD) > abs(command_value)) {

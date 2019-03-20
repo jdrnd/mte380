@@ -25,25 +25,6 @@ Motors motors;
 Photosensor candleSensor;
 Rangefinders rangefinders;
 
-//STUFF for localizaiton
-bool objects[36] = {0};
-int16_t confidence[36] = {0};
-uint16_t X = 0;
-uint16_t Y = 0;
-uint16_t heading = 90;
-
-int16_t der_r = 0;
-int16_t der_l = 0;
-
-bool obj_r = false;
-bool obj_l = false;
-
-bool rel_r = true;
-bool rel_l = true;
-bool rel_f = true;
-bool rel_b = true;
-/////////////////////////////// local
-
 //ColorSensor colorsensor;
 Magnetics magnetics;
 Gyro gyro;
