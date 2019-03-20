@@ -10,7 +10,7 @@
 #include "mission_control.h"
 #include "common.h"
 
-#define MOTOR_PROPORTIONAL_CONTSTANT 5
+#define MOTOR_PROPORTIONAL_CONTSTANT 2
 #define MOTOR_TURN_SPEED 30
 
 #include "sensors/imu.h"
@@ -38,7 +38,7 @@ enum class CommandStatus: uint8_t {
 
 namespace MotorControl {
 
-    const int DELAY_COUNT = 10;
+    const int DELAY_COUNT = 30;
 
 
 

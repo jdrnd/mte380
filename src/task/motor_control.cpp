@@ -77,7 +77,6 @@ void run_drive_command() {
     double leftD = motors.left->getDistance();
     double rightD = motors.right->getDistance();
     int8_t direction = (current_command.value > 0) ? 1 : -1;
-    DEBUG_PRINT(direction);
 
     uint16_t command_value = current_command.value;
 
@@ -108,9 +107,12 @@ void run_drive_command() {
 
     // End, reset
     if (abs(leftD) > abs(command_value) || abs(rightD) > abs(command_value)) {
+        DEBUG_PRINT("Done drive section");
         motors.stop();
         motors.left->resetDistance();
         motors.right->resetDistance();
+
+        MissionControl::update_position(command_value);
 
         run_init = true;
         stopOnWater = false;
@@ -130,15 +132,12 @@ void run_drive_command() {
 
 void run_turn_command() {
     if (current_command.status == CommandStatus::DONE) return;
-    DEBUG_PRINT("RUNNING TURN");
 
     int16_t command_value = current_command.value;
 
     // 1 is right, -1 is left
     int8_t direction = (current_command.value > 0) ? 1 : -1;
     if (current_command.status == CommandStatus::WAITING) {
-        DEBUG_PRINT("RUNNING TURN INIT");
-
         motors.stop();
         
         motors.left->resetDistance();
@@ -153,15 +152,24 @@ void run_turn_command() {
     }
 
     if (abs(motors.left->distance) > abs((command_value/90)*18.7) && abs(motors.right->distance) > abs((command_value/90)*18.7)) {
-        DEBUG_PRINT("doneturn");
+        DEBUG_PRINT("Done Turn");
         motors.stop();
         
         motors.left->resetDistance();
         motors.right->resetDistance();
 
         MissionControl::orientation += command_value/90;
+
+        // C++ modulus operator does not make negative numbers positive
+        if (MissionControl::orientation > 3) {
+            MissionControl::orientation %= 4;
+        } else if (MissionControl::orientation < 0) {
+            MissionControl::orientation += 4;
+        }
         delay_num = 0;
         current_command.status = CommandStatus::DONE;
+        DEBUG_PRINT("Current Orientation")
+        DEBUG_PRINT(MissionControl::orientation);
     }
 }
 
@@ -186,7 +194,15 @@ void run_current_command() {
         }
         if (!command_queue.empty()) {
             command_queue.pop_into(current_command);
-            DEBUG_PRINT("Command recieved");
+            if (current_command.type == Command_t::DRIVE) {
+                DEBUG_PRINT("RUNNING DRIVE COMMAND");
+                DEBUG_PRINT(current_command.value);
+            }
+            else if (current_command.type == Command_t::TURN) { 
+                DEBUG_PRINT("RUNNING TURN COMMAND");
+                DEBUG_PRINT(current_command.value);
+            }
+
         }
     }
     switch(current_command.type) {
@@ -204,14 +220,13 @@ void run_current_command() {
     };
 }
 void motor_control() {
-    DEBUG_PRINT("Motor control");
+    //DEBUG_PRINT("Motor control");
     
     static int count = 0;
-
-    DEBUG_PRINT(motors.left->ticks_) 
-    DEBUG_PRINT(motors.left->distance)
-    DEBUG_PRINT(motors.right->ticks_)
-    DEBUG_PRINT(motors.right->distance)
+    // DEBUG_PRINT(motors.left->ticks_) 
+    // DEBUG_PRINT(motors.left->distance)
+    // DEBUG_PRINT(motors.right->ticks_)
+    // DEBUG_PRINT(motors.right->distance)
 
     static bool done = false;
 

@@ -32,8 +32,6 @@ Magnetics::Magnetics() {
 
 void Magnetics::logReadings() {
     for (uint8_t i=0; i<sizeof(MAGNETIC_PINS)/sizeof(uint8_t); i++) {
-        PLOTTER_SERIAL.print(Magnetics::sensor_pins_[i]);
-        PLOTTER_SERIAL.print(",");
         PLOTTER_SERIAL.print(analogRead(Magnetics::sensor_pins_[i]));
         PLOTTER_SERIAL.print(",");
     }
@@ -41,7 +39,7 @@ void Magnetics::logReadings() {
 }
 
 void Magnetics::detectMagnet() {
-    for (uint8_t i=0; i<NUM_MAGNETIC_SENSORS; i++){//sizeof(MAGNETIC_PINS)/sizeof(uint8_t); i++) {
+    for (uint8_t i=0; i<NUM_MAGNETIC_SENSORS; i++){
         if (abs(analogRead(Magnetics::sensor_pins_[i])-HALL_EFFECT_MEAN) > HALL_EFFECT_TOL) magnetDetected = true;
     }
 }

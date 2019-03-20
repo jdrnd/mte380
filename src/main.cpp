@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include <Wire.h>
-#include <Plotter.h>
+//#include <Plotter.h>
 
 // Use this include because the author of the library was dumb
 // and put C++ code in TaskScheduler.h so we get duplicated symbols
@@ -77,3 +77,4 @@ void setup() {
 void loop() {
     taskManager.execute();
 }
+

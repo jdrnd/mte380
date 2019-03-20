@@ -82,15 +82,24 @@ void Motor::setSpeed(int8_t speedval) {
 
 void Motor::adjustSpeed() {
     #ifdef LOG_MOTOR_CONTROL
-    DEBUG_PRINT(speed_setpoint);
-    DEBUG_PRINT(speed);
-    DEBUG_PRINT(speed_command);
+    PLOTTER_SERIAL.print(Motors::left->speed_setpoint);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(Motors::left->speed);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(Motors::left->speed_command);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(Motors::right->speed_setpoint);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(Motors::right->speed);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.println(Motors::right->speed_command);
     #endif
 
     // Vary speed_command until speed is close to speed_setpoint
     if (speed_setpoint > 0) {
         if (speed > speed_setpoint && (speed-speed_setpoint) > 1){
             speed_command -= MOTOR_CONTROL_CONSTANT;
+            if (speed_command < 0) speed_command = 0;
         }
         else if(speed < speed_setpoint && (speed_setpoint-speed) > 1) {
             speed_command += MOTOR_CONTROL_CONSTANT;
@@ -99,6 +108,7 @@ void Motor::adjustSpeed() {
     else if (speed_setpoint < 0) {
         if (speed < speed_setpoint && (speed_setpoint-speed) > 1) {
             speed_command += MOTOR_CONTROL_CONSTANT;
+            if (speed_command > 0) speed_command = 0;
         }
         else if (speed > speed_setpoint && (speed-speed_setpoint) > 1) {
             speed_command -= MOTOR_CONTROL_CONSTANT;
