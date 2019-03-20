@@ -219,19 +219,14 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                     + String(plan_steps));
             return false;
         }
-<<<<<<< HEAD
         if (prev_terrain != Terrain::WATER) {
             // add a forward move to the path
             plan[plan_steps++] = 0;
-            path.push(Move_t::FORWARD);
+            path.push(Move{Move_t::FORWARD, 309});
         } else {
             plan[plan_steps++] = 2;
-            path.push(Move_t::MOVE_ONTO_WATER);
+            path.push(Move{Move_t::MOVE_ONTO_WATER, 309}); // get actual distance to move one tile
         }
-=======
-        // add a forward move to the path
-        plan[plan_steps++] = 0;
->>>>>>> switched to new course, optimized trajectory
 
         // if the bot has changed orientation since the last tile
         if (prev_parent != map[y][x].parent) {

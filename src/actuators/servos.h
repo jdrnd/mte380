@@ -1,5 +1,5 @@
-#ifndef SERVO_H
-#define SERVO_H
+#ifndef SERVOS_H
+#define SERVOS_H
 
 #include <Arduino.h>
 #include <Servo.h>
@@ -26,3 +26,4 @@ void fold_damper();
 void deinit_damper();
 
 #endif
+

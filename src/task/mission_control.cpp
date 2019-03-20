@@ -30,7 +30,6 @@ namespace MissionControl {
     void init() {
         DEBUG_PRINT("Init mission control");
         pathfinder.init();
-
         //pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, 1);
         pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, STARTING_ORIENTATION);
         pathfinder.printMapTerrain();
@@ -45,12 +44,16 @@ namespace MissionControl {
             DEBUG_PRINT(s);
         }
 
+        MotorControl::send_command(Command_t::DRIVE, 50);
+        MotorControl::send_command(Command_t::DRIVE, 500);//100
+        MotorControl::send_command(Command_t::DRIVE, 40);
+        MotorControl::send_command(Command_t::DRIVE, 40);
+        //MotorControl::send_command(Command_t::TURN, -90);
         t_missionControl.setCallback(&run);
     }
 
     void run() {
         DEBUG_PRINT("Run mission control task");
-
         switch(state) {
             case State_t::CANDLE_HOMING:
                 do_candle_homing();

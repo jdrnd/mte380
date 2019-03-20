@@ -15,9 +15,28 @@ void Motors::rightMotorInterrupt() {
     right->update();
 }
 
-void Motors::setSpeed(int8_t speed) {
-    Motors::left->setSpeed(speed);
-    Motors::right->setSpeed(speed);
+void Motors::setSpeed(int8_t speed, int8_t correction1) {
+    if (correction1 > 100)
+        correction1 = 100;
+    else if (correction1 < - 100)
+        correction1 = -100;
+
+    if (correction1 > 0){
+        Motors::left->setSpeed((int8_t)(speed * (100 - correction1) / 100.));
+        Motors::right->setSpeed(speed);
+    } else {
+        Motors::left->setSpeed(speed);
+        Motors::right->setSpeed((int8_t)(speed * (100 + correction1) / 100.));
+    }
+        
+        PLOTTER_SERIAL.print(speed);
+        PLOTTER_SERIAL.print(",");
+        
+        PLOTTER_SERIAL.print(speed * (100 - correction1) / 100.);
+        PLOTTER_SERIAL.print(",");
+    
+        PLOTTER_SERIAL.print(correction1);
+        PLOTTER_SERIAL.println(",");
 }
 
 void Motors::stop() {

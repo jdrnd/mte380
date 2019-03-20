@@ -5,7 +5,7 @@
 
 #include "actuators/drive_motors.h"
 
-#include "sensors/colorsensor.h"
+//#include "sensors/colorsensor.h"
 #include "sensors/magnetic.h"
 #include "sensors/imu.h"
 #include "sensors/rangefinders.h"
@@ -20,7 +20,7 @@ extern Rangefinders rangefinders;
 // No need to include IMU here due to static nature
 extern Photosensor candleSensor;
 extern Motors motors;
-extern ColorSensor colorsensor;
+//extern ColorSensor colorsensor;
 extern Magnetics magnetics;
 extern Gyro gyro;
 

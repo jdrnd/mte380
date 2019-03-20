@@ -1,4 +1,5 @@
 #include "motor_control.h"
+#include "process_sensors.h"
 
 // this task = t_motorControl
 namespace MotorControl {
@@ -9,6 +10,13 @@ Command current_command;
 bool stopOnWater=false;
 
 static uint8_t delay_num = 0;
+
+int8_t correction = 0;
+
+int8_t Kp = 20;
+
+int16_t leftValArray[5] = {0};//BB
+int8_t counter = 0;//BB
 
 void init_motor_control() {
     DEBUG_PRINT("Init motors");
@@ -24,6 +32,30 @@ void init_motor_control() {
 void stopMotors() {
     current_command.type = Command_t::STOP;
     current_command.status = CommandStatus::WAITING;
+}
+
+void setCorrection(){
+    //differentiate left sensor value and use as correction
+    
+    int16_t slopeSum = 0;
+
+    leftValArray[counter] = LEFTLIDARVAL;
+
+    counter++;
+
+    if(counter == 5){
+        for(int i = 0; i < 4; i++){
+            slopeSum = slopeSum + leftValArray[i+1] - leftValArray[i];
+        }
+
+        correction = slopeSum / 5 * Kp;
+
+        counter = 0;
+
+        for(int i = 0; i < 5; i++){
+            leftValArray[i] = 0;
+        }
+    }
 }
 
 void run_drive_command() {
@@ -49,26 +81,32 @@ void run_drive_command() {
 
     uint16_t command_value = current_command.value;
 
-    if (speed_command == 0) {
-        speed_command = 25*direction;
-        motors.setSpeed(speed_command);
-    }
-    else if (abs(speed_command) == 25 && abs(leftD) > abs(command_value)/10 && abs(rightD) > abs(command_value)/10) {
-        speed_command = 50*direction;
-        motors.setSpeed(speed_command);
-    }
-    else if (abs(speed_command) == 50 && abs(leftD) > abs(command_value)/5 && abs(rightD) > abs(command_value)/5) {
-        speed_command = 75*direction;
-        motors.setSpeed(speed_command);
-    }
-    else if (abs(speed_command) == 75 && abs(leftD) > 0.8*abs(command_value) && abs(rightD) > 0.8*abs(command_value)) {
-        speed_command = 50*direction;
-        motors.setSpeed(speed_command);
-    }
-    else if (abs(speed_command) == 50 && abs(leftD) > 0.9*abs(command_value) && abs(rightD) > 0.9*abs(command_value)) {
-        speed_command = 25*direction;
-        motors.setSpeed(speed_command);
-    }
+    motors.setSpeed(50, correction);
+
+
+        // PLOTTER_SERIAL.print(correction);
+        // PLOTTER_SERIAL.println(",");
+
+    // if (speed_command == 0) {
+    //     speed_command = 25*direction;
+    //     motors.setSpeed(speed_command, correction);
+    // }
+    // else if (abs(speed_command) == 25 && abs(leftD) > abs(command_value)/10 && abs(rightD) > abs(command_value)/10) {
+    //     speed_command = 50*direction;
+    //     motors.setSpeed(speed_command, correction);
+    // }
+    // else if (abs(speed_command) == 50 && abs(leftD) > abs(command_value)/5 && abs(rightD) > abs(command_value)/5) {
+    //     speed_command = 75*direction;
+    //     motors.setSpeed(speed_command, correction);
+    // }
+    // else if (abs(speed_command) == 75 && abs(leftD) > 0.8*abs(command_value) && abs(rightD) > 0.8*abs(command_value)) {
+    //     speed_command = 50*direction;
+    //     motors.setSpeed(speed_command, correction);
+    // }
+    // else if (abs(speed_command) == 50 && abs(leftD) > 0.9*abs(command_value) && abs(rightD) > 0.9*abs(command_value)) {
+    //     speed_command = 25*direction;
+    //     motors.setSpeed(speed_command, correction);
+    // }
 
     // End, reset
     if (abs(leftD) > abs(command_value) || abs(rightD) > abs(command_value)) {
@@ -178,6 +216,8 @@ void motor_control() {
     DEBUG_PRINT(motors.right->distance)
 
     static bool done = false;
+
+    setCorrection();//BB
 
     run_current_command();
 
