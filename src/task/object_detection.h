@@ -5,6 +5,8 @@
 #include <TaskSchedulerDeclarations.h>
 
 #include "sensors/rangefinders.h"
+#include "task/mission_control.h"
+#include "task/motor_control.h"
 
 //threshold for what counts as a significant 'edge'
 #define THRESHOLD 25
@@ -58,15 +60,13 @@ extern uint16_t X;
 extern uint16_t Y;
 
 // linear 2D array, hense (0,1) = index 6, true if object detected
-extern bool objects[36];
+extern bool objects[6][6];
 // measures the confidence of the presence of an object in a given coord, like # of detections.
-extern int16_t confidence[36];
+extern int16_t confidence[6][6];
 
-//position of the robot
+//predicted position of the robot
 extern uint16_t X;
 extern uint16_t Y;
-
-extern uint16_t heading;
 
 extern int16_t der_r;
 extern int16_t der_l;
@@ -75,10 +75,16 @@ extern int16_t der_l;
 extern bool obj_r;
 extern bool obj_l;
 
+//flags for assessing the reliability of each rangefinder
 extern bool rel_r;
 extern bool rel_l;
 extern bool rel_f;
 extern bool rel_b;
+
+//holds the last few values of predicited X and Y so we can 
+//go back in time for detecting objects.
+extern CircularBuffer<uint16_t, 20, uint8_t> Xreadings;
+extern CircularBuffer<uint16_t, 20, uint8_t> Yreadings;
 
 //scans for objects on either side while updating the global X,Y variables
 void localize();

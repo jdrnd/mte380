@@ -22,6 +22,7 @@ namespace MissionControl {
     bool magnet_found = false;
     Terrain map[6][6];
 
+    //TODO: integrate x_pos and y_pos with X and Y 
     uint8_t x_pos = STARTING_X_POS;
     uint8_t y_pos = STARTING_Y_POS;
     int8_t orientation = STARTING_ORIENTATION;
