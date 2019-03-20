@@ -52,7 +52,7 @@ void localize(){
 	rel_r = false;
 
 	if((MotorControl::current_command.type == Command_t::DRIVE && MotorControl::current_command.status == CommandStatus::RUNNING)
-		|| MotorControl::current_command.type == Command_t::STOP && MotorControl::current_command.status == CommandStatus::RUNNING)
+		|| MotorControl::current_command.type == Command_t::STOP)
 	{
 		//**OBJECT DETECTION**	
 		//this scans for objects using an averaged derivative of the lidar data.
