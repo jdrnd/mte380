@@ -196,7 +196,7 @@ namespace MissionControl {
 
         static bool done_init = false;
         if (!done_init) {
-            pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, STARTING_ORIENTATION);
+            pathfinder.setBotPosition(x_pos, y_pos, orientation);
             pathfinder.setTargetPosition(1,4);
             pathfinder.planPath();
             done_init = true;
@@ -206,7 +206,7 @@ namespace MissionControl {
     }
 
     void do_find_magnet(){
-        if (magnetics.magnetDetected) {
+        if (Magnetics::magnetDetected) {
             // Signal physically somehow
             magnet_found = true;
             DEBUG_PRINT("Magnet detected");
@@ -215,6 +215,7 @@ namespace MissionControl {
             raise_damper();
             MotorControl::stopMotors();
             MotorControl::command_queue.clear();
+            count = 0;
             return;
         }
         static uint8_t curr_sand_pit = 0;

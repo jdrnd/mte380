@@ -20,9 +20,6 @@ extern Rangefinders rangefinders;
 // No need to include IMU here due to static nature
 extern Photosensor candleSensor;
 extern Motors motors;
-//extern ColorSensor colorsensor;
-extern Magnetics magnetics;
-extern Gyro gyro;
 
 extern Task t_readSensors;
 

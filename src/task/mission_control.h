@@ -20,14 +20,9 @@
 
 #include "actuators/servos.h"
 
-#define STARTING_X_POS 0
-#define STARTING_Y_POS 0
-#define STARTING_ORIENTATION 1 // along y-axis, towards center
-
 extern ColorSensor colorsensor;
 extern bool flameDetected;
 extern Rangefinders rangefinders;
-extern Magnetics magnetics;
 
 extern Task t_missionControl;
 

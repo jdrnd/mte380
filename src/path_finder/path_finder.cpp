@@ -155,7 +155,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                         // if the bot has to turn
                         if (map[y][x].parent != (dir + 2) % 4) {
                             g_cost += TURN_COST;
-                            if (map[ny][nx].terrain == Terrain::SAND || map[ny][nx].terrain == Terrain::GRAVEL) {
+                            if (map[y][x].terrain == Terrain::SAND || map[y][x].terrain == Terrain::GRAVEL) {
                                 g_cost += SAND_TURN_COST;
                             } 
                         }

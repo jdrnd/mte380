@@ -2,6 +2,7 @@
 #define MAGNETICS_H
 
 #include <Arduino.h>
+#include <CircularBuffer.h>
 
 #include "common.h"
 
@@ -12,7 +13,8 @@
     was detected on any sensor
 */
 
-#define HALL_EFFECT_TOL 7
+#define HALL_EFFECT_TOL 5
+#define HALL_EFFECT_TOL2 3
 #define HALL_EFFECT_MEAN 510 // experimentally measured
 
 // Modify here to change number of sensors
@@ -21,20 +23,16 @@
 // Modify in CPP file
 extern uint8_t MAGNETIC_PINS[NUM_MAGNETIC_SENSORS];
 
-class Magnetics;
 
-class Magnetics {
-    public:
-        void detectMagnet();
-        void logReadings();
-        void clearMagnetDetection();
-        bool magnetDetected;
-    private:
-        const static uint8_t sensor_pins_[NUM_MAGNETIC_SENSORS];
-};
+namespace Magnetics {
+    void detectMagnet();
+    void logReadings();
+    void clearMagnetDetection();
 
-        // Be sure to modify NUM_MAGNETIC_SENSORS as well
-        /*
+    extern bool magnetDetected;
+
+    extern const uint8_t sensor_pins_[NUM_MAGNETIC_SENSORS];
+    /*
         A0,
         A1,
         A2,
@@ -44,6 +42,7 @@ class Magnetics {
         A6,
         A7,
         A8
-        */
-
+    */
+    extern CircularBuffer<uint16_t, 10> sensor_values_[NUM_MAGNETIC_SENSORS];
+};
 #endif

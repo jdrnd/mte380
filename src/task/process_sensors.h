@@ -20,8 +20,6 @@ extern Task t_processSensors;
 extern Motors motors;
 extern Rangefinders rangefinders;
 extern Photosensor candleSensor;
-//extern ColorSensor colorsensor;
-extern Magnetics magnetics;
 extern bool flameDetected;
 
 //localization variables
