@@ -23,6 +23,8 @@ void init_sensors() {
     rangefinders.run();
     #endif
 
+    magnetics.clearMagnetDetection();
+
     IR::init();
     //gyro.init();
 
@@ -34,7 +36,6 @@ void init_sensors() {
 }
 
 void read_sensors() {
-    DEBUG_PRINT("Read Sensors");
     candleSensor.read();
 
     #ifdef RUN_IMU
@@ -62,6 +63,4 @@ void read_sensors() {
 
     motors.left->readDistance();
     motors.right->readDistance();
-
-    DEBUG_PRINT("End Read Sensors");
 }

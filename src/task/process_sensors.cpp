@@ -1,7 +1,7 @@
 #include "process_sensors.h"
 
 
-static Plotter plotter;
+//static Plotter plotter;
 
 int16_t LEFTLIDARVAL;
 
@@ -16,13 +16,15 @@ void init_process_sensors() {
     t_processSensors.setCallback(&process_sensors);
 }
 void process_sensors() {
-    DEBUG_PRINT("Process Sensors")
-    
     LEFTLIDARVAL = rangefinders.left.last_reading;
+    #ifdef RUN_IMU
+    Accel accel = imu->getAccel();
+    Orientation ypr = imu->getYPR();
+    #endif
 
     //magnetics.logReadings();
     if (flameDetected) {
-        DEBUG_PRINT("FLAME");
+        //DEBUG_PRINT("FLAME");
     }
     //print_object_data();
 }
@@ -54,6 +56,4 @@ void print_object_data()
         Serial.print(" ");
         Serial.println(confidence[i]);
     }
-    Serial.println("space");
-    Serial.println("space");
 }

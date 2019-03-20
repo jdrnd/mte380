@@ -1,61 +1,76 @@
 #include "mission_control.h"
 
 const Position sandpits[NUM_SAND_POSITIONS] = {
-    Position{1,4},
-    Position{2,2},
-    Position{4,1}
+    Position{1,4,false},
+    Position{2,2,false},
+    Position{4,1, false}
 };
 
 const Position scan_positions[NUM_SCAN_POSITIONS] = {
-    Position{2,1},
-    Position{1,3},
-    Position{3,4},
-    Position{4,2}
+    Position{2,1, false},
+    Position{1,3,false},
+    Position{3,4,false},
+    Position{4,2,false}
 };
-
+ 
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::MOVE;
+    State_t state = State_t::FIND_MAGNET;
     static uint64_t count = 0;
 
+    bool magnet_found = false;
     Terrain map[6][6];
 
     uint8_t x_pos = STARTING_X_POS;
     uint8_t y_pos = STARTING_Y_POS;
     int8_t orientation = STARTING_ORIENTATION;
 
+    uint8_t sand_pit_order[NUM_SAND_POSITIONS];
+    uint8_t scan_position_order[NUM_SCAN_POSITIONS];
+
     PathFinder pathfinder;
 
     void init() {
         DEBUG_PRINT("Init mission control");
         pathfinder.init();
-        //pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, 1);
-        pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, STARTING_ORIENTATION);
-        pathfinder.printMapTerrain();
-        pathfinder.setTargetPosition(5,5);
-        
-        if (pathfinder.planPath()) {
-            pathfinder.printMapParents();
-            Serial.println("Steps: " + String(pathfinder.path.size()));
-            String s = "";
-            for(int8_t i = pathfinder.plan_steps - 1; i >= 0; i--)
-                s = s + String(pathfinder.plan[i]) + ",";
-            DEBUG_PRINT(s);
-        }
+
+        // Visit sand pits and candle scan positions in the most efficient order
+        switch(STARTING_ORIENTATION) {
+            case 0:
+                sand_pit_order[0] = 0; sand_pit_order[1] = 1; sand_pit_order[2] = 2;
+                scan_position_order[0] = 1, scan_position_order[1] = 2, scan_position_order[2] = 3, scan_position_order[3] = 0;
+                break;
+            case 1:
+                sand_pit_order[0] = 2; sand_pit_order[1] = 1; sand_pit_order[2] = 0; 
+                scan_position_order[0] = 0, scan_position_order[1] = 3, scan_position_order[2] = 2, scan_position_order[3] = 1;
+                break;
+            case 2:
+                sand_pit_order[0] = 2; sand_pit_order[1] = 1; sand_pit_order[2] = 0; 
+                scan_position_order[0] = 3, scan_position_order[1] = 2, scan_position_order[2] = 1, scan_position_order[3] = 0;
+                break;
+            case 3:
+                sand_pit_order[0] = 0; sand_pit_order[1] = 1; sand_pit_order[2] = 2;
+                scan_position_order[0] = 2, scan_position_order[1] = 3, scan_position_order[2] = 0, scan_position_order[3] = 1; 
+                break;
+        };
 
         t_missionControl.setCallback(&run);
     }
 
     void run() {
-        DEBUG_PRINT("Run mission control task");
         switch(state) {
             case State_t::CANDLE_HOMING:
                 do_candle_homing();
                 break;
+            case State_t::CANDLE_SEARCH:
+                do_candle_search();
+                break;
             case State_t::MOVE:
                 do_move_path();
                 break;
+            case State_t::FIND_MAGNET:
+                do_find_magnet();
             default:
                 break;
         };
@@ -101,7 +116,7 @@ namespace MissionControl {
             if (approaching) approaching = false;
         }
 
-        PLOTTER_SERIAL.println("approaching: " + String(approaching) + 
+        DEBUG_PRINT("approaching: " + String(approaching) + 
             " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight));
         if(!candleFound && flameDetectedLeft && flameDetectedRight && !approaching) {
             MotorControl::stopMotors();
@@ -160,10 +175,64 @@ namespace MissionControl {
         */
     }
 
+    void do_candle_search() {
+        static uint8_t curr_scan_position = 0;
+        if (curr_scan_position >= NUM_SCAN_POSITIONS) return;
+
+        // Send coordinates and plan path to each sand pit
+        if (MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
+            pathfinder.setBotPosition(x_pos, y_pos, orientation);
+            pathfinder.setTargetPosition(sandpits[scan_position_order[curr_scan_position]].x, sandpits[scan_position_order[curr_scan_position]].y);
+            pathfinder.planPath();
+
+            while (!pathfinder.path.empty()) send_next_planned_move();
+            curr_scan_position++;
+        }
+    }
+
     void do_move_path() {
         if (MotorControl::current_command.status != CommandStatus::DONE) return;
-        if (pathfinder.path.empty()) return;
+        if (!pathfinder.path.empty()) return;
 
+        static bool done_init = false;
+        if (!done_init) {
+            pathfinder.setBotPosition(STARTING_X_POS, STARTING_Y_POS, STARTING_ORIENTATION);
+            pathfinder.setTargetPosition(1,4);
+            pathfinder.planPath();
+            done_init = true;
+        }
+
+        while (!pathfinder.path.empty()) send_next_planned_move();
+    }
+
+    void do_find_magnet(){
+        if (magnetics.magnetDetected) {
+            // Signal physically somehow
+            magnet_found = true;
+            DEBUG_PRINT("Magnet detected");
+            state = State_t::CANDLE_HOMING;
+            init_damper();
+            raise_damper();
+            MotorControl::stopMotors();
+            MotorControl::command_queue.clear();
+            return;
+        }
+        static uint8_t curr_sand_pit = 0;
+        if (curr_sand_pit >= NUM_SAND_POSITIONS) return;
+
+        // Send coordinates and plan path to each sand pit
+        if (MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
+            pathfinder.setBotPosition(x_pos, y_pos, orientation);
+            pathfinder.setTargetPosition(sandpits[sand_pit_order[curr_sand_pit]].x, sandpits[sand_pit_order[curr_sand_pit]].y);
+            pathfinder.planPath();
+
+            while (!pathfinder.path.empty()) send_next_planned_move();
+            curr_sand_pit++;
+        }
+    }
+
+    // Must ensure that there is a move in the stack before calling
+    void send_next_planned_move() {
         // When we've completed our last command pull a new one from the path and execute it
         Move next_move;
         pathfinder.path.pop_into(next_move);
@@ -213,5 +282,26 @@ namespace MissionControl {
             default:
                 break;
         }
+    }
+
+    // Given the last command value and known orientation, set the new robot position
+    void update_position(int16_t command_value) {
+        int8_t num_tiles = command_value / 30;
+
+        switch(orientation) {
+            case 0:
+                x_pos += num_tiles;
+                break;
+            case 1:
+                y_pos += num_tiles;
+                break;
+            case 2:
+                x_pos -= num_tiles;
+                break;
+            case 3:
+                y_pos -= num_tiles;
+                break;
+        }
+        DEBUG_PRINT("New position " + String(x_pos) + "," + String(y_pos));
     }
 };

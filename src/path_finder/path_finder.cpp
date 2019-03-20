@@ -94,6 +94,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
     uint8_t y = bot_y;
     uint16_t count = 0; // number of steps the algorithm has taken
     
+    DEBUG_PRINT("Planning from position: (" + String(bot_x) 
+        + "," + String(bot_y) + ")");
     DEBUG_PRINT("Planning to Target: (" + String(target_x) + ", " 
         + String(target_y) + ")");
 
@@ -205,6 +207,12 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         if (x == bot_x && y == bot_y) {
             path_populated = true;
             copyPlanToPath();
+
+            Serial.println("Steps: " + String(plan_steps));
+            String s = "";
+            for(int8_t i = plan_steps - 1; i >= 0; i--)
+                s = s + String(plan[i]) + ",";
+            DEBUG_PRINT(s);
             return true;
         }
         Terrain prev_terrain = map[y][x].terrain;
@@ -254,8 +262,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
 void PathFinder::copyPlanToPath() {
     uint8_t num_forward_moves = 0;
 
-    for (int i=plan_steps-1; i>=0; i--) {
-        DEBUG_PRINT(i);
+    for (int i=0; i<plan_steps; i++) {
         if (plan[i] != 0) {
             if (num_forward_moves != 0) {
                 path.push(Move{FORWARD, 30*num_forward_moves});

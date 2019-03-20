@@ -12,7 +12,7 @@
     was detected on any sensor
 */
 
-#define HALL_EFFECT_TOL 6
+#define HALL_EFFECT_TOL 7
 #define HALL_EFFECT_MEAN 510 // experimentally measured
 
 // Modify here to change number of sensors
@@ -37,13 +37,13 @@ class Magnetics {
         /*
         A0,
         A1,
-            A2,
-            A3,
-            A4,
-            A5,
-            A6,
-            A7,
-            A8
+        A2,
+        A3,
+        A4,
+        A5,
+        A6,
+        A7,
+        A8
         */
 
 #endif

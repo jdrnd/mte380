@@ -2,7 +2,7 @@
 #define PROCESS_SENSORS_H
 
 #include <TaskSchedulerDeclarations.h>
-#include <Plotter.h>
+//#include <Plotter.h>
 
 #include "common.h"
 
