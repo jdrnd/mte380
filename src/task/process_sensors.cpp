@@ -22,7 +22,7 @@ void process_sensors() {
     Orientation ypr = imu->getYPR();
     #endif
 
-    //magnetics.logReadings();
+    Magnetics::logReadings();
     if (flameDetected) {
         //DEBUG_PRINT("FLAME");
     }

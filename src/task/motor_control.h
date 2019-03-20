@@ -19,7 +19,6 @@
 extern Task t_motorControl;
 extern Motors motors;
 
-extern Magnetics magnetics;
 
 extern uint16_t correction;
 

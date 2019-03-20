@@ -23,12 +23,15 @@ void init_sensors() {
     rangefinders.run();
     #endif
 
-    magnetics.clearMagnetDetection();
+    Magnetics::clearMagnetDetection();
 
     IR::init();
+<<<<<<< HEAD
     //gyro.init();
 
     //colorsensor.initialize();
+=======
+>>>>>>> more magnet detection stuff
 
     read_sensors();
     // The next runs of this task will use the read_sensors callback function
@@ -47,7 +50,7 @@ void read_sensors() {
     #endif
 
     IR::read();
-    magnetics.detectMagnet();
+    Magnetics::detectMagnet();
 
     detectFlame();
     detectFlameRight();
