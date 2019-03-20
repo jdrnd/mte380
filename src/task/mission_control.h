@@ -46,6 +46,7 @@ namespace MissionControl {
     void run();
 
     void do_candle_homing();
+    void do_candle_homing2();
     void do_explore();
     void do_move_path();
 

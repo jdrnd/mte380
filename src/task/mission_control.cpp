@@ -40,7 +40,7 @@ namespace MissionControl {
 
         switch(state) {
             case State_t::CANDLE_HOMING:
-                do_candle_homing();
+                do_candle_homing2();
                 break;
             case State_t::EXPLORE:
                 do_explore();
@@ -62,6 +62,77 @@ namespace MissionControl {
         // }
     }
 
+
+    void do_candle_homing2() {
+        static bool candleFound = false;
+        // static bool scanned = false;
+        // static bool scanning = false;
+        static uint8_t flameState = 0;
+
+        bool fdbr = flameDetectedBottomRight;
+        bool fdbl = flameDetectedBottomLeft;
+        bool fdtr = flameDetectedTopRight;
+        bool fdtl = flameDetectedTopLeft;
+
+        static double sum = 0;
+        static uint16_t count = 0;
+
+        //static double commanded = 0;
+        //static double offset = 0;
+        static double distanceToCandle = 0;
+
+        bool still = MotorControl::current_command.status == CommandStatus::DONE && MotorControl::command_queue.empty();
+
+        //PLOTTER_SERIAL.println(String(fdbr) + "," + String(fdbl + 2) + "," + String(fdtr + 4) + "," + String(fdtl + 6));
+
+        //PLOTTER_SERIAL.println(String(flameState));
+        PLOTTER_SERIAL.println("flameState: " + String(flameState) + " still: " + String(still));
+
+        const uint8_t sweep = 90;
+        
+        if (flameState == 0 && still) {
+            MotorControl::send_command(Command_t::FINE_TURN, -20);
+            flameState = 1;
+        } else if (flameState == 1 && still) {
+            MotorControl::send_command(Command_t::SLOW_FINE_TURN, sweep);
+            flameState = 2;
+        } else if (flameState == 2) {
+            if (rangefinders.front.last_reading < 330) {
+                sum += MotorControl::getDegrees();
+                count++;
+            }
+            //PLOTTER_SERIAL.println(String(MotorControl::getDegrees()));
+            /*PLOTTER_SERIAL.println("sum: " + String(sum) + " count: " + String(count) 
+                + " average: " + String(sum / ((double)count))
+                + " value: " + String(sweep - sum / ((double)count)));*/
+            if (still) {
+                double commanded = (sweep - sum / ((double)count));
+                commanded = commanded * (1 + 0.6 * exp(- 4.5 * commanded / sweep));
+                //PLOTTER_SERIAL.println("sent: " + String(commanded));
+                MotorControl::send_command(Command_t::FINE_TURN, - commanded);
+                flameState = 3;
+            }
+        } /*else if (flameState == 3 && still) {
+            // TODO @JordanSlater implement an error here if the lidar is greater than some value
+            double offset = 1.5 * (180 / PI) * atan(sweep / (rangefinders.front.last_reading + 100.0));
+            MotorControl::send_command(Command_t::FINE_TURN, - offset);
+            flameState = 4;
+        } else if (flameState == 4 && still) {
+            MotorControl::send_command(Command_t::SLOW_DRIVE, 100);
+            flameState = 5;
+        } else if (flameState == 5 && rangefinders.shortrange.last_reading < 100) {
+            distanceToCandle = MotorControl::getDistance();
+            MotorControl::stopMotors();
+            flameState = 6;
+        } /*else if (flameState == 6 && still) {
+            // do the damping stuff
+            flameState = 8;
+        } else if (flameState == 8) {
+            MotorControl::send_command(Command_t::SLOW_DRIVE, - distanceToCandle);
+            flameState = 9;
+        }*/
+    }
+
     void do_candle_homing() {
         DEBUG_PRINT("Candle homing")
         static bool turningLeft = false;
@@ -71,82 +142,65 @@ namespace MissionControl {
 
         static bool positioning_done = false;
 
-        //if (MotorControl::command_queue.size() > 0) return;
+        if (!candleFound) {
 
-        /*
-        if (!candleFound && MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
-            DEBUG_PRINT("scanning for candle");
-            resetFlameDetection();
-            //MotorControl::send_command(Command_t::TURN, -360);
-            //MotorControl::send_command(Command_t::TURN, -70);
-            //MotorControl::send_command(Command_t::TURN, +70);
-            positioning_done = true;
-            approaching = false;
-        }*/
-
-        if(!candleFound && MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
+        if(MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
             if (turningRight) turningRight = false;
             if (turningLeft) turningLeft = false;
             if (approaching) approaching = false;
         }
 
         PLOTTER_SERIAL.println("approaching: " + String(approaching) + 
-            " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight));
-        if(!candleFound && flameDetectedLeft && flameDetectedRight && !approaching) {
+            " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight) + " candleFound: " + String(candleFound));
+        // if candle has not been found and a sensor on each side is triggered
+        // advance to the candle
+        if(flameDetectedLeft && flameDetectedRight && !approaching) {
             MotorControl::stopMotors();
             MotorControl::command_queue.clear();
             MotorControl::send_command(Command_t::DRIVE, 10);
             turningRight = false;
             turningLeft = false;
             approaching = true;
-        } else if(!candleFound && flameDetectedRight && !flameDetectedLeft && !turningRight) {
+        // if a right sensor is triggered turn right
+        } else if(flameDetectedRight && !flameDetectedLeft && !turningRight) {
             DEBUG_PRINT("candle detected");
             MotorControl::stopMotors();
             MotorControl::command_queue.clear();
-            MotorControl::send_command(Command_t::TURN, -5);
+            MotorControl::send_command(Command_t::TURN, -500);
             turningRight = true;
             turningLeft = false;
             approaching = false;
-        } else if(!candleFound && flameDetectedLeft && !flameDetectedRight && !turningLeft) {
+        // if a left sensor is triggered turn left
+        } else if(flameDetectedLeft && !flameDetectedRight && !turningLeft) {
             DEBUG_PRINT("candle detected");
             MotorControl::stopMotors();
             MotorControl::command_queue.clear();
-            MotorControl::send_command(Command_t::TURN, 5);
+            MotorControl::send_command(Command_t::TURN, 500);
             turningLeft = true;
             turningRight = false;
             approaching = false;
         }
 
-        if (!candleFound && approaching) {
-            //rangefinders.front
-
-        }
-
-        /*
-        if(!candleFound && flameDetected) {
-            DEBUG_PRINT("candle detected");
+        // if the right sensor is not triggered while turing right stop turning right
+        if (turningRight && !flameDetectedRight) {
             MotorControl::stopMotors();
             MotorControl::command_queue.clear();
-            MotorControl::send_command(Command_t::TURN, 10);
-            candleFound = true;
-            resetFlameDetection();
-        }
-
-        if (candleFound && rangefinders.front.last_reading > 200) {
-            DEBUG_PRINT("moving towards candle");
-            MotorControl::send_command(Command_t::DRIVE, 10);
-        }
-
-        if (candleFound && rangefinders.front.last_reading < 200 && flameDetected) {
-            DEBUG_PRINT("exinguishing candle");
+            turningRight = false;
+        // if the left sensor is not triggered while turing left stop turning left
+        } else if (turningLeft && !flameDetectedLeft) {
             MotorControl::stopMotors();
-            //init_damper();
-            //lower_damper();
-
-            state = State_t::NONE;
-            count = 0;
+            MotorControl::command_queue.clear();
+            turningLeft = false;
         }
-        */
+
+        if (approaching) {
+            if (rangefinders.shortrange.last_reading < 100) {
+                //MotorControl::stopMotors();
+                //candleFound = true;
+            }
+        }
+
+        } // CandleFound
     }
     
     void do_explore() {

@@ -23,7 +23,10 @@ extern Magnetics magnetics;
 
 enum class Command_t: uint8_t {
     DRIVE,
+    SLOW_DRIVE,
     TURN,
+    FINE_TURN,
+    SLOW_FINE_TURN,
     STOP,
     NONE
 };
@@ -56,6 +59,9 @@ namespace MotorControl {
     void motor_control();
 
     void send_command(Command_t, int16_t);
+
+    double getDegrees();
+    double getDistance();
 };
 
 #endif

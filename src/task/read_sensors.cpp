@@ -49,14 +49,12 @@ void read_sensors() {
     magnetics.detectMagnet();
 
     detectFlame();
-    detectFlameRight();
-    detectFlameLeft();
 
     #ifdef RUN_GYRO2
     gyro.read();
     #endif
     
-    colorsensor.read_terrain(rangefinders.shortrange.last_reading);
+    //colorsensor.read_terrain(rangefinders.shortrange.last_reading);
 
     motors.left->readDistance();
     motors.right->readDistance();

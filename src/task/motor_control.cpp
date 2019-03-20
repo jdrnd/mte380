@@ -26,7 +26,7 @@ void stopMotors() {
     current_command.status = CommandStatus::WAITING;
 }
 
-void run_drive_command() {
+void run_drive_command(bool slow) {
     if (current_command.status == CommandStatus::DONE) return;
 
     static bool run_init = true;
@@ -53,19 +53,19 @@ void run_drive_command() {
         speed_command = 25*direction;
         motors.setSpeed(speed_command);
     }
-    else if (abs(speed_command) == 25 && abs(leftD) > abs(command_value)/10 && abs(rightD) > abs(command_value)/10) {
+    else if (!slow && abs(speed_command) == 25 && abs(leftD) > abs(command_value)/10 && abs(rightD) > abs(command_value)/10) {
         speed_command = 50*direction;
         motors.setSpeed(speed_command);
     }
-    else if (abs(speed_command) == 50 && abs(leftD) > abs(command_value)/5 && abs(rightD) > abs(command_value)/5) {
+    else if (!slow && abs(speed_command) == 50 && abs(leftD) > abs(command_value)/5 && abs(rightD) > abs(command_value)/5) {
         speed_command = 75*direction;
         motors.setSpeed(speed_command);
     }
-    else if (abs(speed_command) == 75 && abs(leftD) > 0.8*abs(command_value) && abs(rightD) > 0.8*abs(command_value)) {
+    else if (!slow && abs(speed_command) == 75 && abs(leftD) > 0.8*abs(command_value) && abs(rightD) > 0.8*abs(command_value)) {
         speed_command = 50*direction;
         motors.setSpeed(speed_command);
     }
-    else if (abs(speed_command) == 50 && abs(leftD) > 0.9*abs(command_value) && abs(rightD) > 0.9*abs(command_value)) {
+    else if (!slow && abs(speed_command) == 50 && abs(leftD) > 0.9*abs(command_value) && abs(rightD) > 0.9*abs(command_value)) {
         speed_command = 25*direction;
         motors.setSpeed(speed_command);
     }
@@ -129,6 +129,42 @@ void run_turn_command() {
     }
 }
 
+void run_fine_turn_command(bool slow) {
+    if (current_command.status == CommandStatus::DONE) return;
+    DEBUG_PRINT("RUNNING FINE TURN");
+
+    int16_t command_value = current_command.value;
+
+    // 1 is right, -1 is left
+    int8_t direction = (current_command.value > 0) ? 1 : -1;
+    if (current_command.status == CommandStatus::WAITING) {
+        DEBUG_PRINT("RUNNING TURN INIT");
+
+        motors.stop();
+        
+        motors.left->resetDistance();
+        motors.right->resetDistance();
+
+        imu->zero_yaw();
+        
+        // negative direction is right, positive direction in left
+        motors.left->setSpeed(direction*-(MOTOR_TURN_SPEED*(1 - 0.4 * slow)));
+        motors.right->setSpeed(direction*+(MOTOR_TURN_SPEED*(1 - 0.4 * slow)));
+        current_command.status = CommandStatus::RUNNING;
+    }
+
+    if (abs(motors.left->distance) > abs((command_value/90.0)*18.7) && abs(motors.right->distance) > abs((command_value/90.0)*18.7)) {
+        DEBUG_PRINT("done fine turn");
+        motors.stop();
+        
+        motors.left->resetDistance();
+        motors.right->resetDistance();
+
+        delay_num = 0;
+        current_command.status = CommandStatus::DONE;
+    }
+}
+
 void run_stop_command() {
     if (current_command.status == CommandStatus::DONE) return;
     DEBUG_PRINT("STOPPING");
@@ -155,10 +191,19 @@ void run_current_command() {
     }
     switch(current_command.type) {
         case Command_t::DRIVE:
-            run_drive_command();
+            run_drive_command(false);
+            break;
+        case Command_t::SLOW_DRIVE:
+            run_drive_command(true);
             break;
         case Command_t::TURN:
             run_turn_command();
+            break;
+        case Command_t::FINE_TURN:
+            run_fine_turn_command(0);
+            break;
+        case Command_t::SLOW_FINE_TURN:
+            run_fine_turn_command(1);
             break;
         case Command_t::STOP:
             run_stop_command();
@@ -192,6 +237,16 @@ void send_command(Command_t type, int16_t value) {
     
     Command newCommand = Command{type, value, CommandStatus::WAITING};
     command_queue.push(newCommand);
+}
+
+// gets the number of degrees the bot has turned during the current turn command
+double getDegrees() {
+    return (180 / PI) * (motors.right->getDistance() - motors.left->getDistance()) / (2 * 12);
+}
+
+// gets the distance the bot has travelled
+double getDistance() {
+    return (motors.right->getDistance() + motors.left->getDistance()) / 2.0;
 }
 
 };

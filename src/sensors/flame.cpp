@@ -5,6 +5,10 @@
 bool flameDetected = false;
 bool flameDetectedRight = false;
 bool flameDetectedLeft = false;
+bool flameDetectedBottomRight = false;
+bool flameDetectedBottomLeft = false;
+bool flameDetectedTopRight = false;
+bool flameDetectedTopLeft = false;
 
 const uint8_t BOTTOM_LEFT = 22;
 const uint8_t TOP_LEFT = 33;
@@ -19,21 +23,11 @@ const uint8_t FLAME_PINS[4] = {
 };
 
 void detectFlame() {
-    for (int i=0; i<4; i++) {
-        if (digitalRead(FLAME_PINS[i]) == LOW) {
-            flameDetected = true;
-        }
-    }
-}
-
-void detectFlameRight() {
-    flameDetectedRight = (digitalRead(BOTTOM_RIGHT) == LOW || digitalRead(TOP_RIGHT) == LOW);
-}
-
-void detectFlameLeft() {
-    flameDetectedLeft = (digitalRead(BOTTOM_LEFT) == LOW || digitalRead(TOP_LEFT) == LOW);
-}
-
-void resetFlameDetection() {
-    flameDetected = false;
+    flameDetectedBottomRight = digitalRead(BOTTOM_RIGHT) == LOW;
+    flameDetectedBottomLeft = digitalRead(BOTTOM_LEFT) == LOW;
+    flameDetectedTopRight = digitalRead(TOP_RIGHT) == LOW;
+    flameDetectedTopLeft = digitalRead(TOP_LEFT) == LOW;
+    flameDetectedRight = flameDetectedBottomRight || flameDetectedTopRight;
+    flameDetectedLeft = flameDetectedBottomLeft || flameDetectedTopLeft;
+    flameDetected = flameDetectedRight || flameDetectedLeft;
 }
