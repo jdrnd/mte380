@@ -1,5 +1,6 @@
 #include "motor_control.h"
 #include "process_sensors.h"
+#include "object_detection.h"
 
 // this task = t_motorControl
 namespace MotorControl {
@@ -11,12 +12,8 @@ bool stopOnWater=false;
 
 static uint8_t delay_num = 0;
 
-int8_t correction = 0;
-
-int8_t Kp = 20;
-
-int16_t leftValArray[5] = {0};//BB
-int8_t counter = 0;//BB
+int8_t counter = 0;
+float Kp = 0.75;
 
 void init_motor_control() {
     DEBUG_PRINT("Init motors");
@@ -35,27 +32,74 @@ void stopMotors() {
 }
 
 void setCorrection(){
-    //differentiate left sensor value and use as correction
-    
-    int16_t slopeSum = 0;
 
-    leftValArray[counter] = LEFTLIDARVAL;
+    int16_t  position         =  0;
+    int16_t  error = 0, column = 0;
 
-    counter++;
+    bool invert = 0;
 
-    if(counter == 5){
-        for(int i = 0; i < 4; i++){
-            slopeSum = slopeSum + leftValArray[i+1] - leftValArray[i];
-        }
-
-        correction = slopeSum / 5 * Kp;
-
-        counter = 0;
-
-        for(int i = 0; i < 5; i++){
-            leftValArray[i] = 0;
-        }
+    if(heading == 0){
+        position = Y;
+        invert = false;
     }
+    else if(heading == 90){
+        position = X;
+        invert = true;
+    }
+    else if(heading == 180){
+        position = Y;
+        invert = false;
+    }
+    else{
+        position = X;
+        invert = true;
+    }
+
+    invert = 0;
+
+    position = rangefinders.left.last_reading;
+
+    //counter++;
+
+    //if(counter == 2){
+
+        // error[0] = position -  150;//   0 + 150
+        // error[1] = position -  450;// 300 + 150
+        // error[2] = position -  750;// 600 + 150
+        // error[3] = position - 1050;// 900 + 150
+        // error[4] = position - 1350;//1200 + 150
+        // error[5] = position - 1650;//1500 + 150
+
+        column = position/305;
+        error = position - (column * 305 + 150);
+
+        //DETERMINES WHICH SQUARE WE ARE IN SO WE CAN CORRECT TO FIND CENTRE OF IT
+        // min = error[0];
+        // min_target = 0;
+
+        // for(int i = 1; i < 6; i++)
+        //     if(error[i] < min){
+        //         min = error[i];
+        //         min_target = i;
+        //     }
+
+        PLOTTER_SERIAL.print(position);
+        PLOTTER_SERIAL.print(",");
+
+        PLOTTER_SERIAL.print(column);
+        PLOTTER_SERIAL.print(",");
+
+        PLOTTER_SERIAL.print(error);
+        PLOTTER_SERIAL.print(",");
+
+        PLOTTER_SERIAL.print(correction);
+        PLOTTER_SERIAL.println(",");
+        
+        //positive error requires negative correction (positive correction = negative error =  turn left)
+        if(invert == 0)
+            correction = -1 * error * Kp;
+        else
+            correction = error * Kp;
 }
 
 void run_drive_command() {

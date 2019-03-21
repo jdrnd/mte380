@@ -19,8 +19,9 @@
 extern Task t_motorControl;
 extern Motors motors;
 
-
-extern uint16_t correction;
+//extern uint16_t X;
+//extern uint16_t Y;
+extern int16_t correction;
 
 enum class Command_t: uint8_t {
     DRIVE,
