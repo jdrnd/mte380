@@ -26,10 +26,6 @@ extern Rangefinders rangefinders;
 
 extern Task t_missionControl;
 
-#define STARTING_X_POS 5
-#define STARTING_Y_POS 3
-#define STARTING_ORIENTATION 2 // along y-axis, towards center
-
 #define NUM_SCAN_POSITIONS 4
 #define NUM_SAND_POSITIONS 3
 

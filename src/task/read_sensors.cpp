@@ -35,8 +35,13 @@ void read_sensors() {
     candleSensor.read();
 
     #ifdef RUN_IMU
-    imu->readData();
+    if (MotorControl::current_command.type == Command_t::TURN && MotorControl::current_command.status == CommandStatus::RUNNING) {
+          imu->readData();
+        PLOTTER_SERIAL.println(String(imu->getYPR().yaw));
+    }
+
     #endif
+    delay(1);
 
     #ifdef RUN_LIDARS
     rangefinders.readAll();

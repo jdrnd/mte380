@@ -56,9 +56,6 @@ void PathFinder::setBotPosition(uint8_t x, uint8_t y, uint8_t r) {
     bot_x = x;
     bot_y = y;
     bot_r = r;
-    // if the bot has never been in the map we know that it is placed on wood
-    if (!bot_set)
-        map[bot_y][bot_x].terrain = Terrain::WOOD;
     planned = false;
     bot_set = true;
 }
@@ -178,7 +175,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
             }
         }
         count++;
-        /*
+        
         // TODO @JordanSlater change to DEBUG print statements
         // DEBUGGING CODE
         DEBUG_PRINT("count: " + String(count) + " at: (" + String(x) + ", " 
@@ -186,7 +183,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         printMapParents();
         //printMapFCosts();
         DEBUG_PRINT();
-        */
+        
     }
     
     if (!planned) {
@@ -230,10 +227,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         if (prev_terrain != Terrain::WATER) {
             // add a forward move to the path
             plan[plan_steps++] = 0;
-            path.push(Move{Move_t::FORWARD, 30});
         } else {
             plan[plan_steps++] = 2;
-            path.push(Move{Move_t::MOVE_ONTO_WATER, 30}); // get actual distance to move one tile
         }
 
         // if the bot has changed orientation since the last tile
@@ -261,13 +256,16 @@ bool PathFinder::planPath(int8_t unknown_cost) {
 // Copy the plan array into the path, flattening multiple move commands into a single command
 void PathFinder::copyPlanToPath() {
     uint8_t num_forward_moves = 0;
+    path.clear();
 
     for (int i=0; i<plan_steps; i++) {
         if (plan[i] != 0) {
             if (num_forward_moves != 0) {
+                DEBUG_PRINT("Added move with turn");
                 path.push(Move{FORWARD, 30*num_forward_moves});
                 num_forward_moves = 0;
             }
+            DEBUG_PRINT("Added turn");
             if (plan[i] == 1) {
                 path.push(Move{TURN_LEFT, 90});
             } else if (plan[i] == -1) {
@@ -278,7 +276,11 @@ void PathFinder::copyPlanToPath() {
             num_forward_moves++;
         }
     }
-    if (num_forward_moves != 0) path.push(Move{FORWARD, 30*num_forward_moves});
+    if (num_forward_moves != 0) {
+        path.push(Move{FORWARD, 30*num_forward_moves});
+        DEBUG_PRINT("Added move " + String(30*num_forward_moves));
+    }
+    DEBUG_PRINT(path.size());
 }
 
 

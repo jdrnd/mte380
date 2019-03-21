@@ -11,7 +11,10 @@
 #include "common.h"
 
 #define MOTOR_PROPORTIONAL_CONTSTANT 2
-#define MOTOR_TURN_SPEED 30
+#define MOTOR_TURN_SPEED 35
+#define MOTOR_END_TURN_SPEED 20
+
+#define MOTOR_DISTANCE_90_DEG 18.7
 
 #include "sensors/imu.h"
 #include "sensors/magnetic.h"

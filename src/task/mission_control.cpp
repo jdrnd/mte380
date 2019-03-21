@@ -12,7 +12,7 @@ const Position scan_positions[NUM_SCAN_POSITIONS] = {
     Position{3,4,false},
     Position{4,2,false}
 };
- 
+
 namespace MissionControl {
     // this task = t_missionControl
 
@@ -186,7 +186,7 @@ namespace MissionControl {
         // Send coordinates and plan path to each sand pit
         if (MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
             pathfinder.setBotPosition(x_pos, y_pos, orientation);
-            pathfinder.setTargetPosition(sandpits[scan_position_order[curr_scan_position]].x, sandpits[scan_position_order[curr_scan_position]].y);
+            pathfinder.setTargetPosition(scan_positions[scan_position_order[curr_scan_position]].x, scan_positions[scan_position_order[curr_scan_position]].y);
             pathfinder.planPath();
 
             while (!pathfinder.path.empty()) send_next_planned_move();
@@ -195,18 +195,15 @@ namespace MissionControl {
     }
 
     void do_move_path() {
-        if (MotorControl::current_command.status != CommandStatus::DONE) return;
-        if (!pathfinder.path.empty()) return;
 
         static bool done_init = false;
         if (!done_init) {
-            pathfinder.setBotPosition(x_pos, y_pos, orientation);
-            pathfinder.setTargetPosition(1,4);
-            pathfinder.planPath();
+            MotorControl::send_command(Command_t::TURN, -90);
+            MotorControl::send_command(Command_t::TURN, -90);
+            MotorControl::send_command(Command_t::TURN, 90);
+            MotorControl::send_command(Command_t::TURN, 90);
             done_init = true;
         }
-
-        while (!pathfinder.path.empty()) send_next_planned_move();
     }
 
     void do_test_move() {
@@ -222,17 +219,20 @@ namespace MissionControl {
 
     void do_find_magnet(){
         if (Magnetics::magnetDetected) {
+            #ifdef STOP_ON_MAGNET
             // Signal physically somehow
             magnet_found = true;
             DEBUG_PRINT("Magnet detected");
-            // state = State_t::CANDLE_HOMING;
-            // init_damper();
-            // raise_damper();
-            // MotorControl::stopMotors();
-            // MotorControl::command_queue.clear();
-            // count = 0;
-            // return;
+            state = State_t::CANDLE_HOMING;
+            init_damper();
+            raise_damper();
+            MotorControl::stopMotors();
+            MotorControl::command_queue.clear();
+            count = 0;
+            return;
+            #endif
         }
+
         static uint8_t curr_sand_pit = 0;
         if (curr_sand_pit >= NUM_SAND_POSITIONS) return;
 

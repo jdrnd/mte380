@@ -2,8 +2,6 @@
 #define PROCESS_SENSORS_H
 
 #include <TaskSchedulerDeclarations.h>
-//#include <Plotter.h>
-
 #include "common.h"
 
 #include "actuators/drive_motors.h"
