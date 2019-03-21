@@ -242,9 +242,14 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 plan[plan_steps++] = -1;
             }
             else { // the parent tile points back at the current tile
-                DEBUG_PRINT("Error while creating plan, repeat tile at step: " 
-                    + String(plan_steps));
-                return false;
+				if (x == bot_x && y == bot_y) {
+					plan[plan_steps++] = 1;
+					plan[plan_steps++] = 1;
+				} else {
+					DEBUG_PRINT("Error while creating plan, repeat tile at step: " 
+						+ String(plan_steps));
+					return false;
+				}
             }
         }
     }
