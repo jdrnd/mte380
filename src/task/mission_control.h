@@ -29,6 +29,8 @@ extern Task t_missionControl;
 #define NUM_SCAN_POSITIONS 4
 #define NUM_SAND_POSITIONS 3
 
+#define FAN_CONTROL_PIN 40
+
 struct Position {
     uint8_t x;
     uint8_t y;

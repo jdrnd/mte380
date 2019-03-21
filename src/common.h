@@ -13,9 +13,9 @@
     Configuration values for each run
 */
 
-#define STARTING_X_POS 5
-#define STARTING_Y_POS 3
-#define STARTING_ORIENTATION 2 // along y-axis, towards center
+#define STARTING_X_POS 4
+#define STARTING_Y_POS 0
+#define STARTING_ORIENTATION 1 // along y-axis, towards center
 
 
 /*
@@ -28,8 +28,9 @@
 #define RUN_LOGGING
 #define RUN_LIDARS
 //#define RUN_IMU
-//define STOP_ON_MAGNET 1
-#define LOG_MOTOR_CONTROL
+#define STOP_ON_MAGNET
+//#define LOG_MOTOR_CONTROL
+//#define LOG_OBJECT_DETECTION
 
 
 /*

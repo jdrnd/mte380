@@ -29,9 +29,9 @@ Scheduler taskManager;
 // Times in milliseconds
 Task t_readSensors(50UL, TASK_FOREVER, &init_sensors, &taskManager, true);
 Task t_motorControl(10UL, TASK_FOREVER, &MotorControl::init_motor_control, &taskManager, true);
-Task t_missionControl(100UL, TASK_FOREVER, &MissionControl::init, &taskManager, true);
+Task t_missionControl(50UL, TASK_FOREVER, &MissionControl::init, &taskManager, true);
 Task t_localize(50UL, TASK_FOREVER, &localize, &taskManager, true);
-Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
+Task t_processSensors(50UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
 
 // XBEE
 // 3.3 V
@@ -64,7 +64,6 @@ void setup() {
     // lower_damper();  
     // delay(2000);
     // fold_damper();
-    delay(2000);
 }
 
 

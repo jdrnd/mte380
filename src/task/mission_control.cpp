@@ -16,7 +16,7 @@ const Position scan_positions[NUM_SCAN_POSITIONS] = {
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::TEST_MOVE;
+    State_t state = State_t::FIND_MAGNET;
     static uint64_t count = 0;
 
     bool magnet_found = false;
@@ -80,12 +80,16 @@ namespace MissionControl {
         };
         count++;
 
-        if (count == 3) {
+        if (count == 6) {
             fold_damper();
+        }
+        if (count == 12) {
             deinit_damper();
+            digitalWrite(FAN_CONTROL_PIN, LOW);
         }
         // if (colorsensor.curr_terrain == Terrain::WATER && MotorControl::current_command.type == Command_t::DRIVE) {
         //     MotorControl::stopMotors();
+
         //     MotorControl::command_queue.clear();
         //     MotorControl::send_command(Command_t::TURN, 90);
         // }
@@ -183,14 +187,39 @@ namespace MissionControl {
         static uint8_t curr_scan_position = 0;
         if (curr_scan_position >= NUM_SCAN_POSITIONS) return;
 
+        if (flameDetected) {
+            pinMode(FAN_CONTROL_PIN, OUTPUT);
+            digitalWrite(FAN_CONTROL_PIN, HIGH);
+            MotorControl::stopMotors();
+            MotorControl::command_queue.clear();
+            count=0;
+            state = State_t::NONE;
+            return;
+        }
+
+        if (curr_scan_position == NUM_SCAN_POSITIONS) {
+            MotorControl::send_command(Command_t::TURN, 360);
+        }
+
         // Send coordinates and plan path to each sand pit
         if (MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE) {
+
+            if (curr_scan_position == NUM_SCAN_POSITIONS) {
+                state = State_t::NONE;
+                return;
+            }
             pathfinder.setBotPosition(x_pos, y_pos, orientation);
             pathfinder.setTargetPosition(scan_positions[scan_position_order[curr_scan_position]].x, scan_positions[scan_position_order[curr_scan_position]].y);
             pathfinder.planPath();
 
+            if (curr_scan_position != 0) {
+
+                MotorControl::send_command(Command_t::TURN, 360);
+            }
+
             while (!pathfinder.path.empty()) send_next_planned_move();
             curr_scan_position++;
+
         }
     }
 

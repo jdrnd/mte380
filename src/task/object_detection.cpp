@@ -218,7 +218,9 @@ void localize(){
 		}
 
 	}
+	#ifdef LOG_OBJECT_DETECTION
 	PLOTTER_SERIAL.println(String(X) + "," + String(Y) + "," + String(100*obj_l) + "," + String(150*obj_r));
+	#endif
 
 	Xreadings.push(X);
 	Yreadings.push(Y);
