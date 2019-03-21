@@ -24,22 +24,14 @@
 Motors motors;
 Photosensor candleSensor;
 Rangefinders rangefinders;
-<<<<<<< HEAD
-=======
-
->>>>>>> optimizations for movement
 Scheduler taskManager;
 
 // Times in milliseconds
 Task t_readSensors(50UL, TASK_FOREVER, &init_sensors, &taskManager, true);
 Task t_motorControl(10UL, TASK_FOREVER, &MotorControl::init_motor_control, &taskManager, true);
 Task t_missionControl(100UL, TASK_FOREVER, &MissionControl::init, &taskManager, true);
-<<<<<<< HEAD
 Task t_localize(50UL, TASK_FOREVER, &localize, &taskManager, true);
 Task t_processSensors(100UL, TASK_FOREVER, &init_process_sensors, &taskManager, true);
-=======
-Task t_localize(100UL, TASK_FOREVER, &localize, &taskManager, true);
->>>>>>> optimizations for movement
 
 // XBEE
 // 3.3 V
