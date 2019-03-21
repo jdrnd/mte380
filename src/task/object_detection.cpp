@@ -153,9 +153,6 @@ void localize(){
 		rel_r = true;
 	}
 
-	Xreadings.push(X);
-	Yreadings.push(Y);
-
 	//calculate the coord to the left or right
 	if(rel_r || rel_l)
 	{
@@ -200,6 +197,11 @@ void localize(){
 			if(MissionControl::orientation == 3) Y = MAX_LENGTH_COURSE - rangefinders.back.last_reading - BACK_LIDAR_OFFSET;	
 		}
 	}
+	PLOTTER_SERIAL.println(String(X) + "," + String(Y));
+
+	Xreadings.push(X);
+	Yreadings.push(Y);
+
 	cnt_r++;
 	cnt_l++;
 	cnt_latest_data_use_r++;
