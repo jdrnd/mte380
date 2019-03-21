@@ -56,7 +56,7 @@ class Motors {
         static void leftMotorInterrupt();
         static void rightMotorInterrupt();
 
-        static void setSpeed(int8_t, int8_t);
+        static void setSpeed(int8_t, int16_t);
         static void stop();
 };
 

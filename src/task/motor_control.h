@@ -9,6 +9,7 @@
 
 #include "mission_control.h"
 #include "common.h"
+#include "sensors/rangefinders.h"
 
 #define MOTOR_PROPORTIONAL_CONTSTANT 2
 #define MOTOR_TURN_SPEED 30
@@ -18,6 +19,7 @@
 
 extern Task t_motorControl;
 extern Motors motors;
+extern Rangefinders rangefinders;
 
 //extern uint16_t X;
 //extern uint16_t Y;

@@ -1,6 +1,7 @@
 #include "motor_control.h"
 #include "process_sensors.h"
 #include "object_detection.h"
+#include "mission_control.h"
 
 // this task = t_motorControl
 namespace MotorControl {
@@ -12,8 +13,11 @@ bool stopOnWater=false;
 
 static uint8_t delay_num = 0;
 
-int8_t counter = 0;
-float Kp = 0.75;
+float Kp = 10;//, Ki = 0.05;
+int8_t count = 0;
+int16_t array[5] = {0};
+int16_t integral = 0;
+int16_t lastX = 0;
 
 void init_motor_control() {
     DEBUG_PRINT("Init motors");
@@ -35,71 +39,77 @@ void setCorrection(){
 
     int16_t  position         =  0;
     int16_t  error = 0, column = 0;
-
+    //integral = 0;
+    
     bool invert = 0;
 
-    if(heading == 0){
-        position = Y;
-        invert = false;
-    }
-    else if(heading == 90){
-        position = X;
-        invert = true;
-    }
-    else if(heading == 180){
-        position = Y;
-        invert = false;
-    }
-    else{
-        position = X;
-        invert = true;
-    }
+    // if(MissionControl::orientation == 0){
+    //     position = Y;
+    //     invert = false;
+    // }
+    // else if(MissionControl::orientation == 1){
+    //     position = X;
+    //     invert = true;
+    // }
+    // else if(MissionControl::orientation == 2){
+    //     position = Y;
+    //     invert = true;
+    // }
+    // else{
+    //     position = X;
+    //     invert = false;
+    // }
 
-    invert = 0;
+    position = rangefinders.right.last_reading;
 
-    position = rangefinders.left.last_reading;
+    // error[0] = position -  150;//   0 + 150
+    // error[1] = position -  450;// 300 + 150
+    // error[2] = position -  750;// 600 + 150
+    // error[3] = position - 1050;// 900 + 150
+    // error[4] = position - 1350;//1200 + 150
+    // error[5] = position - 1650;//1500 + 150
 
-    //counter++;
+    //column = position/305;
+    //error = position - (column * 305 + 152);
 
-    //if(counter == 2){
 
-        // error[0] = position -  150;//   0 + 150
-        // error[1] = position -  450;// 300 + 150
-        // error[2] = position -  750;// 600 + 150
-        // error[3] = position - 1050;// 900 + 150
-        // error[4] = position - 1350;//1200 + 150
-        // error[5] = position - 1650;//1500 + 150
+    error = position-lastX;
+    lastX = position;
 
-        column = position/305;
-        error = position - (column * 305 + 150);
+    // array[count%5] = error;
 
-        //DETERMINES WHICH SQUARE WE ARE IN SO WE CAN CORRECT TO FIND CENTRE OF IT
-        // min = error[0];
-        // min_target = 0;
+    // for(int i = 0; i < 5; i++){
+    //     integral = integral + array[i];
+    // }
 
-        // for(int i = 1; i < 6; i++)
-        //     if(error[i] < min){
-        //         min = error[i];
-        //         min_target = i;
-        //     }
+    PLOTTER_SERIAL.print(X);
+    PLOTTER_SERIAL.print(",");
 
-        PLOTTER_SERIAL.print(position);
-        PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.print(Y);
+    PLOTTER_SERIAL.print(",");
 
-        PLOTTER_SERIAL.print(column);
-        PLOTTER_SERIAL.print(",");
-
-        PLOTTER_SERIAL.print(error);
-        PLOTTER_SERIAL.print(",");
-
-        PLOTTER_SERIAL.print(correction);
-        PLOTTER_SERIAL.println(",");
+    PLOTTER_SERIAL.print(position);
+    PLOTTER_SERIAL.print(",");
         
-        //positive error requires negative correction (positive correction = negative error =  turn left)
-        if(invert == 0)
-            correction = -1 * error * Kp;
-        else
-            correction = error * Kp;
+    PLOTTER_SERIAL.print(MissionControl::orientation*100);
+    PLOTTER_SERIAL.print(",");
+
+    PLOTTER_SERIAL.print(column*100);
+    PLOTTER_SERIAL.print(",");
+
+    PLOTTER_SERIAL.print(error);
+    PLOTTER_SERIAL.print(",");
+
+    PLOTTER_SERIAL.print(correction);
+    PLOTTER_SERIAL.println(",");
+
+    count++;
+    
+    //positive error requires negative correction (positive correction = negative error =  turn left)
+    if(invert == 0)
+        correction = -1 * error * Kp;
+    else
+        correction = error * Kp;
 }
 
 void run_drive_command() {
@@ -275,7 +285,7 @@ void motor_control() {
 
     static bool done = false;
 
-    //setCorrection();//BB
+    setCorrection();//BB
 
     run_current_command();
 

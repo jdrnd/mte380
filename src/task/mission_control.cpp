@@ -213,9 +213,9 @@ namespace MissionControl {
         static bool done_init = false;
 
         if (!done_init) {
-            MotorControl::send_command(Command_t::DRIVE, 60);
-            MotorControl::send_command(Command_t::TURN, 90);
-            MotorControl::send_command(Command_t::DRIVE, 30);
+            MotorControl::send_command(Command_t::DRIVE, 150);
+            //MotorControl::send_command(Command_t::TURN, 90);
+            //MotorControl::send_command(Command_t::DRIVE, 30);
             done_init = true;
         }
     }

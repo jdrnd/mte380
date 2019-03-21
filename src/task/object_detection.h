@@ -64,14 +64,6 @@ extern bool objects[6][6];
 // measures the confidence of the presence of an object in a given coord, like # of detections.
 extern int16_t confidence[6][6];
 
-<<<<<<< HEAD
-//predicted position of the robot
-extern uint16_t X;
-extern uint16_t Y;
-=======
-extern uint16_t heading;
->>>>>>> saving progress
-
 extern int16_t der_r;
 extern int16_t der_l;
 
