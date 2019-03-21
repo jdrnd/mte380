@@ -51,10 +51,9 @@ void localize(){
 	rel_l = false;
 	rel_r = false;
 
-	//only update the position
-	if(MotorControl::current_command.type == Command_t::DRIVE && MotorControl::current_command.status == CommandStatus::RUNNING)
+	if((MotorControl::current_command.type == Command_t::DRIVE && MotorControl::current_command.status == CommandStatus::RUNNING)
+		|| MotorControl::current_command.type == Command_t::STOP && MotorControl::current_command.status == CommandStatus::RUNNING)
 	{
-
 		//**OBJECT DETECTION**	
 		//this scans for objects using an averaged derivative of the lidar data.
 		if(rangefinders.front.readings_.size() > 5)
@@ -129,75 +128,97 @@ void localize(){
 					wait_after_object_r = false;
 				}
 			}
+			// if we detect an object wait OBJ_CALC_DELAY cycles before locating the object
+			// waits for the lidars to settle
+			if(obj_l)
+			{
+				cnt_calc_delay_l++;
+				if(cnt_calc_delay_l == OBJ_CALC_DELAY)
+				{
+					locate_coord_lin(LidarSensor::LIDAR_LEFT, rangefinders.left.last_reading, X, Y);
+				}
+			}
+			if(obj_r)
+			{
+				cnt_calc_delay_r++;
+				if(cnt_calc_delay_r == OBJ_CALC_DELAY)
+				{
+					locate_coord_lin(LidarSensor::LIDAR_RIGHT, rangefinders.right.last_reading, X, Y);
+				}
+
+			}
+
+	
+
+			//**LOCALIZE the current X,Y value**
+			//check the reliability of each sensor
+
+			if(rangefinders.front.last_reading < FRONT_LIDAR_MAX)
+			{
+				rel_f = true;
+			}
+			if(rangefinders.back.last_reading < BACK_LIDAR_MAX)
+			{
+				rel_b = true;
+			}
+			if(rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] < LEFT_LIDAR_MAX && !obj_l)
+			{
+				rel_l = true;
+			}
+			if(rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] < RIGHT_LIDAR_MAX && !obj_r)
+			{
+				rel_r = true;
+			}
+
+			//calculate the coord to the left or right
+			if(rel_r || rel_l)
+			{
+				// if both are reliable but right is closer to the wall, or if right is the only option
+				// the second case essentailly prevent the coord from being updated while an object is being passed on the left side
+				if((rel_r && rel_l && rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] <= rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l]) ||
+					(rel_r && !rel_l && !obj_l))
+				{
+					if(MissionControl::orientation == 0) Y = rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET;
+					if(MissionControl::orientation == 1) X = MAX_LENGTH_COURSE - (rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET);
+					if(MissionControl::orientation == 2) Y = MAX_LENGTH_COURSE - (rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET);
+					if(MissionControl::orientation == 3) X = rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET;	 
+				}
+				// if both are reliable and left is closer to the wall, or if left is the only option
+				// the second case essentailly prevent the coord from being updated while an object is being passed on the right side
+				else if((rel_r && rel_l && rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] > rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l]) ||
+						(rel_l && !rel_r && !obj_r))
+				{
+					if(MissionControl::orientation == 0) Y = MAX_LENGTH_COURSE - rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] - LEFT_LIDAR_OFFSET;
+					if(MissionControl::orientation == 1) X = rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] + LEFT_LIDAR_OFFSET;
+					if(MissionControl::orientation == 2) Y = rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] + LEFT_LIDAR_OFFSET;
+					if(MissionControl::orientation == 3) X = MAX_LENGTH_COURSE - rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] - LEFT_LIDAR_OFFSET;	
+				}
+			}
+			// Calculate the coord to the front or back
+			if(rel_b || rel_f)	
+			{
+				if((rel_f && rel_b && rangefinders.front.last_reading <= rangefinders.back.last_reading) ||
+					(rel_f && !rel_b))
+				{
+					if(MissionControl::orientation == 0) X = MAX_LENGTH_COURSE - rangefinders.front.last_reading - FRONT_LIDAR_OFFSET;
+					if(MissionControl::orientation == 1) Y = MAX_LENGTH_COURSE - rangefinders.front.last_reading - FRONT_LIDAR_OFFSET;
+					if(MissionControl::orientation == 2) X = rangefinders.front.last_reading + FRONT_LIDAR_OFFSET;
+					if(MissionControl::orientation == 3) Y = rangefinders.front.last_reading + FRONT_LIDAR_OFFSET;	 
+				}
+				else if((rel_f && rel_b && rangefinders.front.last_reading > rangefinders.back.last_reading) ||
+						(rel_b && !rel_f))
+				{
+					if(MissionControl::orientation == 0) X = rangefinders.back.last_reading + BACK_LIDAR_OFFSET;
+					if(MissionControl::orientation == 1) Y = rangefinders.back.last_reading + BACK_LIDAR_OFFSET;
+					if(MissionControl::orientation == 2) X = MAX_LENGTH_COURSE - rangefinders.back.last_reading - BACK_LIDAR_OFFSET;
+					if(MissionControl::orientation == 3) Y = MAX_LENGTH_COURSE - rangefinders.back.last_reading - BACK_LIDAR_OFFSET;	
+				}
+				
+			}
 		}
 
 	}
-
-	//**LOCALIZE the current X,Y value**
-	//check the reliability of each sensor
-
-	if(rangefinders.front.last_reading < FRONT_LIDAR_MAX)
-	{
-		rel_f = true;
-	}
-	if(rangefinders.back.last_reading < BACK_LIDAR_MAX)
-	{
-		rel_b = true;
-	}
-	if(rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] < LEFT_LIDAR_MAX && !obj_l)
-	{
-		rel_l = true;
-	}
-	if(rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] < RIGHT_LIDAR_MAX && !obj_r)
-	{
-		rel_r = true;
-	}
-
-	//calculate the coord to the left or right
-	if(rel_r || rel_l)
-	{
-		// if both are reliable but right is closer to the wall, or if right is the only option
-		// the second case essentailly prevent the coord from being updated while an object is being passed on the left side
-		if((rel_r && rel_l && rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] <= rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l]) ||
-			(rel_r && !rel_l && !obj_l))
-		{
-			if(MissionControl::orientation == 0) Y = rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET;
-			if(MissionControl::orientation == 1) X = MAX_LENGTH_COURSE - (rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET);
-			if(MissionControl::orientation == 2) Y = MAX_LENGTH_COURSE - (rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET);
-			if(MissionControl::orientation == 3) X = rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] + RIGHT_LIDAR_OFFSET;	 
-		}
-		// if both are reliable and left is closer to the wall, or if left is the only option
-		// the second case essentailly prevent the coord from being updated while an object is being passed on the right side
-		else if((rel_r && rel_l && rangefinders.right.readings_[r_size-1-LR_DELAY*use_prev_data_r] > rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l]) ||
-				(rel_l && !rel_r && !obj_r))
-		{
-			if(MissionControl::orientation == 0) Y = MAX_LENGTH_COURSE - rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] - LEFT_LIDAR_OFFSET;
-			if(MissionControl::orientation == 1) X = rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] + LEFT_LIDAR_OFFSET;
-			if(MissionControl::orientation == 2) Y = rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] + LEFT_LIDAR_OFFSET;
-			if(MissionControl::orientation == 3) X = MAX_LENGTH_COURSE - rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] - LEFT_LIDAR_OFFSET;	
-		}
-	}
-	// Calculate the coord to the front or back
-	if(rel_b || rel_f)	
-	{
-		if((rel_f && rel_b && rangefinders.front.last_reading <= rangefinders.back.last_reading) ||
-			(rel_f && !rel_b))
-		{
-			if(MissionControl::orientation == 0) X = MAX_LENGTH_COURSE - rangefinders.front.last_reading - FRONT_LIDAR_OFFSET;
-			if(MissionControl::orientation == 1) Y = MAX_LENGTH_COURSE - rangefinders.front.last_reading - FRONT_LIDAR_OFFSET;
-			if(MissionControl::orientation == 2) X = rangefinders.front.last_reading + FRONT_LIDAR_OFFSET;
-			if(MissionControl::orientation == 3) Y = rangefinders.front.last_reading + FRONT_LIDAR_OFFSET;	 
-		}
-		else if((rel_f && rel_b && rangefinders.front.last_reading > rangefinders.back.last_reading) ||
-				(rel_b && !rel_f))
-		{
-			if(MissionControl::orientation == 0) X = rangefinders.back.last_reading + BACK_LIDAR_OFFSET;
-			if(MissionControl::orientation == 1) Y = rangefinders.back.last_reading + BACK_LIDAR_OFFSET;
-			if(MissionControl::orientation == 2) X = MAX_LENGTH_COURSE - rangefinders.back.last_reading - BACK_LIDAR_OFFSET;
-			if(MissionControl::orientation == 3) Y = MAX_LENGTH_COURSE - rangefinders.back.last_reading - BACK_LIDAR_OFFSET;	
-		}
-	}
-	PLOTTER_SERIAL.println(String(X) + "," + String(Y));
+	PLOTTER_SERIAL.println(String(X) + "," + String(Y) + "," + String(100*obj_l) + "," + String(150*obj_r));
 
 	Xreadings.push(X);
 	Yreadings.push(Y);
@@ -205,7 +226,8 @@ void localize(){
 	cnt_r++;
 	cnt_l++;
 	cnt_latest_data_use_r++;
-	cnt_latest_data_use_l++;	
+	cnt_latest_data_use_l++;
+		
 }
 
 void lidar_derivative()

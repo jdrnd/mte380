@@ -9,30 +9,30 @@
 #include "task/motor_control.h"
 
 //threshold for what counts as a significant 'edge'
-#define THRESHOLD 25
+#define THRESHOLD 30
 
 //the distance in the units of the LIDAR for 12 inches = 305 mm
 #define DIS_PER_BLOCK 305
 #define MAX_LENGTH_COURSE 1830
 
-#define RIGHT_LIDAR_MAX 1000
-#define LEFT_LIDAR_MAX 1000
-#define BACK_LIDAR_MAX 1000
-#define FRONT_LIDAR_MAX 1000
+#define RIGHT_LIDAR_MAX 1100
+#define LEFT_LIDAR_MAX 1100
+#define BACK_LIDAR_MAX 1100
+#define FRONT_LIDAR_MAX 1100
 
 //effects how often object detection flags are reset
 
 // number of cycles we use recent data
-#define USE_LATEST_DATA_RESET 3
+#define USE_LATEST_DATA_RESET 6 //3
 // number of cycles before we reset the obejct flag if there was noise
-#define OBJECT_DET_HARD_RESET 25
+#define OBJECT_DET_HARD_RESET 60 //30
 // number of cycles behind the most recent stream of data that the left and right coordinate is updated with
 // this allows an object to be detected while preventing the LR coord from shifting
 #define LR_DELAY 3
 // number of cycles the algorithm waits after the falling edge of an object for the data to be reliable
-#define WAIT_AFTER_OBJECT 4
+#define WAIT_AFTER_OBJECT 10 //5
 
-#define OBJ_CALC_DELAY 2
+#define OBJ_CALC_DELAY 4 //2
 
 //used in cpp
 #define min(a,b) ((a)<(b)?(a):(b))

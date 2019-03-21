@@ -26,13 +26,6 @@ void init_sensors() {
     Magnetics::clearMagnetDetection();
 
     IR::init();
-<<<<<<< HEAD
-    //gyro.init();
-
-    //colorsensor.initialize();
-=======
->>>>>>> more magnet detection stuff
-
     read_sensors();
     // The next runs of this task will use the read_sensors callback function
     t_readSensors.setCallback(&read_sensors);

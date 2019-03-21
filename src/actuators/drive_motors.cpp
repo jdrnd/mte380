@@ -29,14 +29,14 @@ void Motors::setSpeed(int8_t speed, int8_t correction1) {
         Motors::right->setSpeed((int8_t)(speed * (100 + correction1) / 100.));
     }
         
-        PLOTTER_SERIAL.print(speed);
-        PLOTTER_SERIAL.print(",");
+        // PLOTTER_SERIAL.print(speed);
+        // PLOTTER_SERIAL.print(",");
         
-        PLOTTER_SERIAL.print(speed * (100 - correction1) / 100.);
-        PLOTTER_SERIAL.print(",");
+        // PLOTTER_SERIAL.print(speed * (100 - correction1) / 100.);
+        // PLOTTER_SERIAL.print(",");
     
-        PLOTTER_SERIAL.print(correction1);
-        PLOTTER_SERIAL.println(",");
+        // PLOTTER_SERIAL.print(correction1);
+        // PLOTTER_SERIAL.println(",");
 }
 
 void Motors::stop() {

@@ -72,6 +72,7 @@ void run_drive_command() {
 
         stopOnWater = true;
         run_init = false;
+        current_command.status = CommandStatus::RUNNING;
     }
 
     double leftD = motors.left->getDistance();
@@ -230,7 +231,7 @@ void motor_control() {
 
     static bool done = false;
 
-    setCorrection();//BB
+    //setCorrection();//BB
 
     run_current_command();
 
