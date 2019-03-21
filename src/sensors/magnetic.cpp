@@ -43,6 +43,7 @@ void detectMagnet() {
         if (sensor_values_[i].size() == 10) {
             if (abs(sensor_reading - sensor_avg) > HALL_EFFECT_TOL && abs(sensor_values_[i][sensor_values_[i].size() -2] - sensor_avg) > HALL_EFFECT_TOL2) {
                 magnetDetected = true;
+<<<<<<< HEAD
                 #ifdef STOP_ON_MAGNET
                 PLOTTER_SERIAL.println(String(sensor_reading) + "," + String(sensor_avg));
                 PLOTTER_SERIAL.println(abs(sensor_reading - sensor_avg));
@@ -56,6 +57,11 @@ void detectMagnet() {
             PLOTTER_SERIAL.println(String(sensor_reading) + "," + String(sensor_avg));
             #endif
         }
+=======
+                return;
+            }
+        }
+>>>>>>> working on wall following
     }
 }
 
