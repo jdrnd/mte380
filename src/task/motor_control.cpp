@@ -134,6 +134,7 @@ void run_drive_command() {
 void run_turn_command() {
     if (current_command.status == CommandStatus::DONE) return;
 
+    static bool speed_decreased = false;
     int16_t command_value = current_command.value;
 
     // 1 is right, -1 is left
@@ -144,7 +145,10 @@ void run_turn_command() {
         motors.left->resetDistance();
         motors.right->resetDistance();
 
+        #ifdef RUN_IMU
+        imu->init();
         imu->zero_yaw();
+        #endif
         
         // negative direction is right, positive direction in left
         motors.left->setSpeed(direction*-MOTOR_TURN_SPEED);
@@ -152,12 +156,22 @@ void run_turn_command() {
         current_command.status = CommandStatus::RUNNING;
     }
 
-    if (abs(motors.left->distance) > abs((command_value/90)*18.7) && abs(motors.right->distance) > abs((command_value/90)*18.7)) {
+    // Throttle down to a lower speed for the last third of the turn
+    if (!speed_decreased) {
+        if (abs(motors.left->distance) > abs((command_value/90)*MOTOR_DISTANCE_90_DEG)*0.7 || abs(motors.right->distance) > abs((command_value/90)*MOTOR_DISTANCE_90_DEG)*0.7) { 
+            motors.left->setSpeed(direction*-MOTOR_END_TURN_SPEED);
+            motors.right->setSpeed(direction*+MOTOR_END_TURN_SPEED);
+            speed_decreased = true;
+        } 
+    }
+
+    if (abs(motors.left->distance) > abs((command_value/90)*MOTOR_DISTANCE_90_DEG) && abs(motors.right->distance) > abs((command_value/90)*MOTOR_DISTANCE_90_DEG)) {
         DEBUG_PRINT("Done Turn");
         motors.stop();
         
         motors.left->resetDistance();
         motors.right->resetDistance();
+        speed_decreased = false;
 
         MissionControl::orientation += command_value/90;
 

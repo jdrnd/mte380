@@ -12,6 +12,7 @@ IMU* IMU_Wrapper::primary = new IMU;
 bool IMU::init() {
     yaw_offset_ = 0;
     data_ready_ = false;
+    error_count = 0;
 
     // Add initial measurement to IMU buffers for filtering
     measurements_x_.push(0);
@@ -28,22 +29,12 @@ bool IMU::init() {
 
     uint8_t devStatus = mpu_.dmpInitialize();
 
-    // Offsets determined experimentally
-    /*
-    mpu_.setXAccelOffset(-2818);
-    mpu_.setYAccelOffset(1090);
-    mpu_.setZAccelOffset(912);
-    mpu_.setXGyroOffset(3);
-    mpu_.setYGyroOffset(77);
+    mpu_.setXAccelOffset(-1414);
+    mpu_.setYAccelOffset(161);
+    mpu_.setZAccelOffset(1202);
+    mpu_.setXGyroOffset(96);
+    mpu_.setYGyroOffset(-39);
     mpu_.setZGyroOffset(-11);
-    */
-
-    mpu_.setXAccelOffset(-3705);
-    mpu_.setYAccelOffset(445);
-    mpu_.setZAccelOffset(1662);
-    mpu_.setXGyroOffset(17);
-    mpu_.setYGyroOffset(9);
-    mpu_.setZGyroOffset(12);
 
 
     // make sure it worked (returns 0 if so)
@@ -84,7 +75,7 @@ void IMU::readData() {
     uint16_t fifoCount = mpu_.getFIFOCount();
     while (fifoCount < imu_packetsize_) {
         fifoCount = mpu_.getFIFOCount();
-        DEBUG_PRINT("nodata")
+        error_count++;
     }
     // read a packet from FIFO
     uint8_t imu_buffer[64];

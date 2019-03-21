@@ -82,6 +82,7 @@ void Motor::setSpeed(int8_t speedval) {
 
 void Motor::adjustSpeed() {
     #ifdef LOG_MOTOR_CONTROL
+    /*
     PLOTTER_SERIAL.print(Motors::left->speed_setpoint);
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.print(Motors::left->speed);
@@ -93,6 +94,10 @@ void Motor::adjustSpeed() {
     PLOTTER_SERIAL.print(Motors::right->speed);
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.println(Motors::right->speed_command);
+    */
+    PLOTTER_SERIAL.print(Motors::left->distance);
+    PLOTTER_SERIAL.print(",");
+    PLOTTER_SERIAL.println(Motors::right->distance);
     #endif
 
     // Vary speed_command until speed is close to speed_setpoint
@@ -122,7 +127,7 @@ void Motor::adjustSpeed() {
     uint8_t pwm_command = get_pwm_command(speed_command);
 
     #ifdef LOG_MOTOR_CONTROL
-    DEBUG_PRINT(pwm_command);
+    //DEBUG_PRINT(pwm_command);
     #endif
     
     analogWrite(pwm_pin_, pwm_command);
