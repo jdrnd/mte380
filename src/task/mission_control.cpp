@@ -16,12 +16,13 @@ const Position scan_positions[NUM_SCAN_POSITIONS] = {
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::FIND_MAGNET;
+    State_t state = State_t::TEST_MOVE;
     static uint64_t count = 0;
 
     bool magnet_found = false;
     Terrain map[6][6];
 
+    //TODO: integrate x_pos and y_pos with X and Y 
     uint8_t x_pos = STARTING_X_POS;
     uint8_t y_pos = STARTING_Y_POS;
     int8_t orientation = STARTING_ORIENTATION;
@@ -68,6 +69,9 @@ namespace MissionControl {
                 break;
             case State_t::MOVE:
                 do_move_path();
+                break;
+            case State_t::TEST_MOVE:
+                do_test_move();
                 break;
             case State_t::FIND_MAGNET:
                 do_find_magnet();
@@ -205,18 +209,29 @@ namespace MissionControl {
         while (!pathfinder.path.empty()) send_next_planned_move();
     }
 
+    void do_test_move() {
+        static bool done_init = false;
+
+        if (!done_init) {
+            MotorControl::send_command(Command_t::DRIVE, 60);
+            MotorControl::send_command(Command_t::TURN, 90);
+            MotorControl::send_command(Command_t::DRIVE, 30);
+            done_init = true;
+        }
+    }
+
     void do_find_magnet(){
         if (Magnetics::magnetDetected) {
             // Signal physically somehow
             magnet_found = true;
             DEBUG_PRINT("Magnet detected");
-            state = State_t::CANDLE_HOMING;
-            init_damper();
-            raise_damper();
-            MotorControl::stopMotors();
-            MotorControl::command_queue.clear();
-            count = 0;
-            return;
+            // state = State_t::CANDLE_HOMING;
+            // init_damper();
+            // raise_damper();
+            // MotorControl::stopMotors();
+            // MotorControl::command_queue.clear();
+            // count = 0;
+            // return;
         }
         static uint8_t curr_sand_pit = 0;
         if (curr_sand_pit >= NUM_SAND_POSITIONS) return;

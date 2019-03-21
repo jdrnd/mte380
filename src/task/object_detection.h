@@ -5,32 +5,34 @@
 #include <TaskSchedulerDeclarations.h>
 
 #include "sensors/rangefinders.h"
+#include "task/mission_control.h"
+#include "task/motor_control.h"
 
 //threshold for what counts as a significant 'edge'
-#define THRESHOLD 25
+#define THRESHOLD 30
 
 //the distance in the units of the LIDAR for 12 inches = 305 mm
 #define DIS_PER_BLOCK 305
 #define MAX_LENGTH_COURSE 1830
 
-#define RIGHT_LIDAR_MAX 1000
-#define LEFT_LIDAR_MAX 1000
-#define BACK_LIDAR_MAX 1000
-#define FRONT_LIDAR_MAX 1000
+#define RIGHT_LIDAR_MAX 1100
+#define LEFT_LIDAR_MAX 1100
+#define BACK_LIDAR_MAX 1100
+#define FRONT_LIDAR_MAX 1100
 
 //effects how often object detection flags are reset
 
 // number of cycles we use recent data
-#define USE_LATEST_DATA_RESET 3
+#define USE_LATEST_DATA_RESET 6 //3
 // number of cycles before we reset the obejct flag if there was noise
-#define OBJECT_DET_HARD_RESET 25
+#define OBJECT_DET_HARD_RESET 60 //30
 // number of cycles behind the most recent stream of data that the left and right coordinate is updated with
 // this allows an object to be detected while preventing the LR coord from shifting
 #define LR_DELAY 3
 // number of cycles the algorithm waits after the falling edge of an object for the data to be reliable
-#define WAIT_AFTER_OBJECT 4
+#define WAIT_AFTER_OBJECT 10 //5
 
-#define OBJ_CALC_DELAY 2
+#define OBJ_CALC_DELAY 4 //2
 
 //used in cpp
 #define min(a,b) ((a)<(b)?(a):(b))
@@ -58,15 +60,13 @@ extern uint16_t X;
 extern uint16_t Y;
 
 // linear 2D array, hense (0,1) = index 6, true if object detected
-extern bool objects[36];
+extern bool objects[6][6];
 // measures the confidence of the presence of an object in a given coord, like # of detections.
-extern int16_t confidence[36];
+extern int16_t confidence[6][6];
 
-//position of the robot
+//predicted position of the robot
 extern uint16_t X;
 extern uint16_t Y;
-
-extern uint16_t heading;
 
 extern int16_t der_r;
 extern int16_t der_l;
@@ -75,10 +75,16 @@ extern int16_t der_l;
 extern bool obj_r;
 extern bool obj_l;
 
+//flags for assessing the reliability of each rangefinder
 extern bool rel_r;
 extern bool rel_l;
 extern bool rel_f;
 extern bool rel_b;
+
+//holds the last few values of predicited X and Y so we can 
+//go back in time for detecting objects.
+extern CircularBuffer<uint16_t, 20, uint8_t> Xreadings;
+extern CircularBuffer<uint16_t, 20, uint8_t> Yreadings;
 
 //scans for objects on either side while updating the global X,Y variables
 void localize();

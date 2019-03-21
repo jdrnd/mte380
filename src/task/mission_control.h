@@ -52,6 +52,7 @@ namespace MissionControl {
         NONE = 0,
         EXPLORE = 42,
         MOVE,
+        TEST_MOVE,
         FIND_MAGNET,
         CANDLE_SEARCH,
         CANDLE_HOMING = 25
@@ -66,6 +67,7 @@ namespace MissionControl {
     void do_move_path();
     void do_find_magnet();
     void do_candle_search();
+    void do_test_move();
 
 
     void update_position(int16_t);
