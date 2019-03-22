@@ -9,7 +9,7 @@
 #include "task/motor_control.h"
 
 //threshold for what counts as a significant 'edge'
-#define THRESHOLD 18
+#define THRESHOLD 25
 
 //the distance in the units of the LIDAR for 12 inches = 305 mm
 #define DIS_PER_BLOCK 305
@@ -23,16 +23,16 @@
 //effects how often object detection flags are reset
 
 // number of cycles we use recent data
-#define USE_LATEST_DATA_RESET 8 //3
+#define USE_LATEST_DATA_RESET 6 //3
 // number of cycles before we reset the obejct flag if there was noise
-#define OBJECT_DET_HARD_RESET 60 //30
+#define OBJECT_DET_HARD_RESET 40 //30
 // number of cycles behind the most recent stream of data that the left and right coordinate is updated with
 // this allows an object to be detected while preventing the LR coord from shifting
-#define LR_DELAY 4  
+#define LR_DELAY 6  
 // number of cycles the algorithm waits after the falling edge of an object for the data to be reliable
-#define WAIT_AFTER_OBJECT 3 //5
+#define WAIT_AFTER_OBJECT 5 //5
 
-#define OBJ_CALC_DELAY 7 //2
+#define OBJ_CALC_DELAY 10 //2
 
 //used in cpp
 #define min(a,b) ((a)<(b)?(a):(b))
@@ -50,8 +50,8 @@ enum LidarSensor : uint8_t
 };
 
 struct Point {
-    int8_t x;
-    int8_t y;
+    uint8_t x;
+    uint8_t y;
     uint16_t confidence;
 };
 
@@ -59,6 +59,7 @@ extern Task t_localize;
 
 extern Rangefinders rangefinders;
 
+namespace ObjectDetection {
 //Global variables for object deteciton and localization
 
 //position of the robot
@@ -69,6 +70,7 @@ extern uint16_t Y;
 extern bool objects[6][6];
 // measures the confidence of the presence of an object in a given coord, like # of detections.
 extern int16_t confidence[6][6];
+extern Point points[2];
 
 //predicted position of the robot
 extern uint16_t X;
@@ -114,5 +116,9 @@ void locate_coord_lin(LidarSensor sensor, uint16_t diff, uint16_t x, uint16_t y)
 void locate_coord_rot(LidarSensor sensor, uint16_t diff);
 
 uint8_t find_lowest_reading_index(LidarSensor sensor, uint8_t max);
-	
+void find_best_points();
+bool are_we_blocked(LidarSensor sensor);
+
+void print_object_data();
+}
 #endif

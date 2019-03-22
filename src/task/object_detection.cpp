@@ -1,11 +1,12 @@
 #include "object_detection.h"
 
 
+namespace ObjectDetection {
 //STUFF for localizaiton
 bool objects[6][6] = {0};
 int16_t confidence[6][6] = {0};
 //three most likely points for objects
-Point points[3] = {{-1,-1,0},{-1,-1,0},{-1,-1,0}};
+Point points[2] = {{0,0,0},{0,0,0}};
 uint16_t X = 0;
 uint16_t Y = 0;
 
@@ -132,7 +133,7 @@ void localize(){
 				cnt_after_object_r++;
 				if(cnt_after_object_r == WAIT_AFTER_OBJECT)
 				{
-					//setting obj_l allows the coord to be updated again
+					//setting obj_r allows the coord to be updated again
 					obj_r = false;
 					use_prev_data_r = false;
 					cnt_latest_data_use_r = 0;
@@ -169,47 +170,55 @@ void localize(){
 			//check the reliability of each sensor
 			if(rangefinders.back.last_reading < BACK_LIDAR_MAX)
 			{
-				if( (MissionControl::orientation == 0 &&
-					rangefinders.back.last_reading < exp_range[5-MissionControl::x_pos][0] && 
-					rangefinders.back.last_reading > exp_range[5-MissionControl::x_pos][1]) ||
-					(MissionControl::orientation == 2 &&
-					rangefinders.back.last_reading < exp_range[MissionControl::x_pos][0] && 
-					rangefinders.back.last_reading > exp_range[MissionControl::x_pos][1]) ||
-					(MissionControl::orientation == 1 &&
-					rangefinders.back.last_reading < exp_range[5-MissionControl::y_pos][0] && 
-					rangefinders.back.last_reading > exp_range[5-MissionControl::y_pos][1]) ||
-					(MissionControl::orientation == 3 &&
-					rangefinders.back.last_reading < exp_range[MissionControl::y_pos][0] && 
-					rangefinders.back.last_reading > exp_range[MissionControl::y_pos][1]) )
+				// if( (MissionControl::orientation == 0 &&
+				// 	rangefinders.back.last_reading < exp_range[5-MissionControl::x_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[5-MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 2 &&
+				// 	rangefinders.back.last_reading < exp_range[MissionControl::x_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 1 &&
+				// 	rangefindCers.back.last_reading < exp_range[5-MissionControl::y_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[5-MissionControl::y_pos][1]) ||
+				// 	(MissionControl::orientation == 3 &&
+				// 	rangefinders.back.last_reading < exp_range[MissionControl::y_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[MissionControl::y_pos][1]) )
+				// {
+				//rel_b = true;
+				// }
+				// else
+				// {
+				// 	//place the object front or behind.
+				// }
+				if(!are_we_blocked(LIDAR_BACK))
 				{
 					rel_b = true;
-				}
-				else
-				{
-					//place the object front or behind.
 				}
 				
 			}
 			if(rangefinders.front.last_reading < FRONT_LIDAR_MAX)
 			{
-				if( (MissionControl::orientation == 0 &&
-					rangefinders.front.last_reading < exp_range[MissionControl::x_pos][0] && 
-					rangefinders.front.last_reading > exp_range[MissionControl::x_pos][1]) ||
-					(MissionControl::orientation == 2 &&
-					rangefinders.front.last_reading < exp_range[5-MissionControl::x_pos][0] && 
-					rangefinders.front.last_reading > exp_range[5-MissionControl::x_pos][1]) ||
-					(MissionControl::orientation == 1 &&
-					rangefinders.front.last_reading < exp_range[MissionControl::y_pos][0] && 
-					rangefinders.front.last_reading > exp_range[MissionControl::y_pos][1]) ||
-					(MissionControl::orientation == 3 &&
-					rangefinders.front.last_reading < exp_range[5-MissionControl::y_pos][0] && 
-					rangefinders.front.last_reading > exp_range[5-MissionControl::y_pos][1]) )
+				// if( (MissionControl::orientation == 0 &&
+				// 	rangefinders.front.last_reading < exp_range[MissionControl::x_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 2 &&
+				// 	rangefinders.front.last_reading < exp_range[5-MissionControl::x_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[5-MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 1 &&
+				// 	rangefinders.front.last_reading < exp_range[MissionControl::y_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[MissionControl::y_pos][1]) ||
+				// 	(MissionControl::orientation == 3 &&
+				// 	rangefinders.front.last_reading < exp_range[5-MissionControl::y_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[5-MissionControl::y_pos][1]) )
+				// {
+				//rel_f = true;
+				//}
+				// else if(rel_b) // if the back lidar is reliable then front back coord is reliable, and we can place object
+				// {
+				// 	locate_coord_lin(LidarSensor::LIDAR_FRONT,rangefinders.front.last_reading,X,Y);
+				// }
+				if(!are_we_blocked(LIDAR_FRONT))
 				{
 					rel_f = true;
-				}
-				else if(rel_b) // if the back lidar is reliable then front back coord is reliable, and we can place object
-				{
-					locate_coord_lin(LidarSensor::LIDAR_FRONT,rangefinders.front.last_reading,X,Y);
 				}
 				
 			}
@@ -267,17 +276,17 @@ void localize(){
 				}
 				
 			}
-			else //there is an object in the way
-			{
-				if(MissionControl::orientation == 0 || MissionControl::orientation == 2)
-				{
-					X = MissionControl::x_pos*305+152;
-				}
-				else // you are facing the other way
-				{
-					Y = MissionControl::y_pos*305+152;
-				}
-			}
+			// else //there is an object in the way
+			// {
+			// 	if(MissionControl::orientation == 0 || MissionControl::orientation == 2)
+			// 	{
+			// 		X = MissionControl::x_pos*305+152;
+			// 	}
+			// 	else // you are facing the other way
+			// 	{
+			// 		Y = MissionControl::y_pos*305+152;
+			// 	}
+			// }
 			
 		}
 
@@ -396,31 +405,156 @@ void find_best_points()
 			if(objects[j][i])
 			{
 				uint16_t curr_conf = confidence[j][i];
-				if(curr_conf >= points[2].confidence)
+				if(curr_conf >= points[1].confidence)
 				{
-					if(curr_conf >= points[1].confidence)
+					if(curr_conf >= points[0].confidence)
 					{
-						if(curr_conf >= points[0].confidence)
-						{
-							points[2] = points[1];
-							points[1] = points[0];
-							points[0] = {i,j,curr_conf};
+						points[1] = points[0];
+						points[0] = {i,j,curr_conf};
 
-						}
-						else
-						{
-							points[2] = points[1];
-							points[1] = {i,j,curr_conf};
-						}
 					}
 					else
 					{
-						points[2] = {i,j,curr_conf};
+						points[1] = {i,j,curr_conf};
 					}
-					
 				}
 			}
-			
 		}
 	}
+}
+
+bool are_we_blocked(LidarSensor sensor)
+{
+	if(sensor == LIDAR_FRONT)
+	{
+		if(MissionControl::orientation == 0)
+		{
+			for(uint8_t i = MissionControl::x_pos+1; i<6; i++)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 1)
+		{
+			for(uint8_t i = MissionControl::y_pos+1; i<6; i++)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 2)
+		{
+			for(int8_t i = MissionControl::x_pos-1; i>=0; i--)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 3)
+		{
+			for(int8_t i = MissionControl::y_pos-1; i>=0; i--)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{
+			return false;
+		}
+		
+
+	}
+	if(sensor == LIDAR_BACK)
+	{
+		if(MissionControl::orientation == 2)
+		{
+			for(uint8_t i = MissionControl::x_pos+1; i<6; i++)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 3)
+		{
+			for(uint8_t i = MissionControl::y_pos+1; i<6; i++)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 0)
+		{
+			for(int8_t i = MissionControl::x_pos-1; i>=0; i--)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 1)
+		{
+			for(int8_t i = MissionControl::y_pos-1; i>=0; i--)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+}
+
+void print_object_data()
+{   
+    for(int8_t i = 5; i >= 0; i--)
+    {
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][0]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][1]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][2]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][3]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][4]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][5]);
+            PLOTTER_SERIAL.print("       ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][0]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][1]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][2]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][3]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][4]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.println(ObjectDetection::confidence[i][5]);
+            
+    }
+    PLOTTER_SERIAL.println(".");
+    PLOTTER_SERIAL.println(".");
+}
+
 }

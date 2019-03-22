@@ -39,7 +39,6 @@ void read_sensors() {
           imu->readData();
         PLOTTER_SERIAL.println(String(imu->getYPR().yaw));
     }
-
     #endif
     delay(1);
 

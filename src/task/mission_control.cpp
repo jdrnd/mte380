@@ -16,7 +16,7 @@ const Position scan_positions[NUM_SCAN_POSITIONS] = {
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::TEST_MOVE;
+    State_t state = State_t::OBJECT_SEARCH;
     static uint64_t count = 0;
 
     bool magnet_found = false;
@@ -75,6 +75,10 @@ namespace MissionControl {
                 break;
             case State_t::FIND_MAGNET:
                 do_find_magnet();
+                break;
+            case State_t::OBJECT_SEARCH:
+                do_object_search();
+                break;
             default:
                 break;
         };
@@ -223,7 +227,6 @@ namespace MissionControl {
     }
 
     void do_move_path() {
-
         static bool done_init = false;
         if (!done_init) {
             MotorControl::send_command(Command_t::TURN, -90);
@@ -231,6 +234,77 @@ namespace MissionControl {
             MotorControl::send_command(Command_t::TURN, 90);
             MotorControl::send_command(Command_t::TURN, 90);
             done_init = true;
+        }
+    }
+
+    void do_object_search() {
+        static bool done_init = false;
+
+        static bool first_planned = false;
+        static bool second_planned = false;
+        static bool return_planned = false;
+
+        if (!done_init) {
+            MotorControl::send_command(Command_t::DRIVE, 150);
+            done_init = true;
+        }
+
+        if (MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE && !first_planned) {
+            ObjectDetection::find_best_points();
+            
+            ObjectDetection::print_object_data();
+
+            DEBUG_PRINT(ObjectDetection::points[0].x)
+            DEBUG_PRINT(ObjectDetection::points[0].y)
+            DEBUG_PRINT(ObjectDetection::points[1].x)
+            DEBUG_PRINT(ObjectDetection::points[1].y)
+            DEBUG_PRINT(ObjectDetection::points[2].x)
+            DEBUG_PRINT(ObjectDetection::points[2].y)
+            pathfinder.setBotPosition(x_pos, y_pos, orientation);
+            pathfinder.setTargetPosition(ObjectDetection::points[0].x, ObjectDetection::points[0].y);
+            pathfinder.planPath();
+
+            // Don't send last move as that would cause us to run into the object
+            while(pathfinder.path.size() > 1) send_next_planned_move();
+            if (pathfinder.path.top().type == Move_t::FORWARD) {
+                if (pathfinder.path.top().value > 30) {
+                    MotorControl::send_command(Command_t::DRIVE, pathfinder.path.top().value -30);
+                }
+            }
+            first_planned = true; 
+        }
+
+        if (MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE && first_planned && !second_planned) {
+            init_damper();
+            raise_damper();
+            count=0;
+            pathfinder.setBotPosition(x_pos, y_pos, orientation);
+            pathfinder.setTargetPosition(ObjectDetection::points[1].x, ObjectDetection::points[1].y);
+
+            pathfinder.planPath();
+
+            // Don't send last move as that would cause us to run into the object
+            while(pathfinder.path.size() > 1) send_next_planned_move();
+                        if (pathfinder.path.top().type == Move_t::FORWARD) {
+                if (pathfinder.path.top().value > 30) {
+                    MotorControl::send_command(Command_t::DRIVE, pathfinder.path.top().value -30);
+                }
+            }
+            second_planned = true;
+        }
+
+        // return to start
+        if (MotorControl::command_queue.empty() && MotorControl::current_command.status == CommandStatus::DONE &&first_planned && second_planned && !return_planned) {
+            init_damper();
+            raise_damper();
+            count=0;
+            pathfinder.setBotPosition(x_pos, y_pos, orientation);
+            pathfinder.setTargetPosition(STARTING_X_POS, STARTING_Y_POS);
+
+            pathfinder.planPath();
+
+            while(pathfinder.path.size() > 0) send_next_planned_move();
+            return_planned = true;
         }
     }
 
@@ -346,6 +420,6 @@ namespace MissionControl {
                 y_pos -= num_tiles;
                 break;
         }
-        DEBUG_PRINT("New position " + String(x_pos) + "," + String(y_pos));
+        PLOTTER_SERIAL.println("New position " + String(x_pos) + "," + String(y_pos));
     }
 };

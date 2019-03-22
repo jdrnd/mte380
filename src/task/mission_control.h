@@ -18,7 +18,7 @@
 
 #include "actuators/servos.h"
 
-#include "actuators/servos.h"
+#include "task/object_detection.h"
 
 extern ColorSensor colorsensor;
 extern bool flameDetected;
@@ -56,6 +56,7 @@ namespace MissionControl {
         TEST_MOVE,
         FIND_MAGNET,
         CANDLE_SEARCH,
+        OBJECT_SEARCH,
         CANDLE_HOMING = 25
     };
 
@@ -69,6 +70,7 @@ namespace MissionControl {
     void do_find_magnet();
     void do_candle_search();
     void do_test_move();
+    void do_object_search();
 
 
     void update_position(int16_t);

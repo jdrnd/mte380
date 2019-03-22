@@ -26,37 +26,6 @@ void process_sensors() {
     if (flameDetected) {
         //DEBUG_PRINT("FLAME");
     }
+
     //print_object_data();
-}
-void print_object_data()
-{
-    for(int8_t i = 5; i >= 0; i--)
-    {
-            Serial.print(objects[i][0]);
-            Serial.print(" ");
-            Serial.print(objects[i][1]);
-            Serial.print(" ");
-            Serial.print(objects[i][2]);
-            Serial.print(" ");
-            Serial.print(objects[i][3]);
-            Serial.print(" ");
-            Serial.print(objects[i][4]);
-            Serial.print(" ");
-            Serial.print(objects[i][5]);
-            Serial.print("       ");
-            Serial.print(confidence[i][0]);
-            Serial.print(" ");
-            Serial.print(confidence[i][1]);
-            Serial.print(" ");
-            Serial.print(confidence[i][2]);
-            Serial.print(" ");
-            Serial.print(confidence[i][3]);
-            Serial.print(" ");
-            Serial.print(confidence[i][4]);
-            Serial.print(" ");
-            Serial.println(confidence[i][5]);
-            
-    }
-    Serial.println(".");
-    Serial.println(".");
 }

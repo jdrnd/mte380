@@ -13,7 +13,7 @@
     Configuration values for each run
 */
 
-#define STARTING_X_POS 4
+#define STARTING_X_POS 3
 #define STARTING_Y_POS 0
 #define STARTING_ORIENTATION 1 // along y-axis, towards center
 
