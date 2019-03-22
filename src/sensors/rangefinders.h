@@ -71,6 +71,10 @@ class Rangefinders
         void readAll();
         void logReadings();
 
+        Rangefinder<VL53L1X> &operator[](uint8_t i);
+
+        //template <class type> Rangefinder<type>* getRangefinder(int i);
+
         Rangefinder<VL53L1X> front;
         Rangefinder<VL53L1X> back;
         Rangefinder<VL53L1X> left;

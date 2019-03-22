@@ -13,10 +13,15 @@ const Position scan_positions[NUM_SCAN_POSITIONS] = {
     Position{4,2,false}
 };
 
+static const int8_t NUM_FINDERS = 2;
+static int8_t triggers[NUM_FINDERS];
+static const int8_t TRIGGERS[3] = {-15, 5, 10};
+static uint8_t finders[NUM_FINDERS];
+
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::OBJECT_SEARCH;
+    State_t state = State_t::RELOCALIZE;
     static uint64_t count = 0;
 
     bool magnet_found = false;
@@ -27,6 +32,8 @@ namespace MissionControl {
     uint8_t y_pos = STARTING_Y_POS;
     int8_t orientation = STARTING_ORIENTATION;
 
+    bool relocalized = false;
+
     uint8_t sand_pit_order[NUM_SAND_POSITIONS];
     uint8_t scan_position_order[NUM_SCAN_POSITIONS];
 
@@ -34,6 +41,9 @@ namespace MissionControl {
 
     void init() {
         DEBUG_PRINT("Init mission control");
+
+        //MotorControl::send_command(Command_t::SLOW_TURN, 110);
+
         pathfinder.init();
 
         // Visit sand pits and candle scan positions in the most efficient order
@@ -82,6 +92,7 @@ namespace MissionControl {
             default:
                 break;
         };
+        do_relocalize();
         count++;
 
         if (count == 6) {
@@ -97,6 +108,154 @@ namespace MissionControl {
         //     MotorControl::command_queue.clear();
         //     MotorControl::send_command(Command_t::TURN, 90);
         // }
+    }
+
+    bool init_relocalize() {
+        if (MotorControl::current_command.type != Command_t::SLOW_TURN)
+            return false;
+        if (MotorControl::current_command.value > 0)
+            orientation = (orientation + 1) % 4;
+        else if(MotorControl::current_command.value < 0) {
+            if (orientation == 0)
+                orientation = 3;
+            else
+                orientation--;
+        }
+
+        uint8_t closest_x = min(x_pos, 5 - x_pos);
+        triggers[0] = TRIGGERS[closest_x];
+        uint8_t closest_y = min(y_pos, 5 - y_pos);
+        triggers[1] = TRIGGERS[closest_y];
+
+        if (x_pos < 3) {
+            /*
+            0 -> 3
+            1 -> 2
+            2 -> 1
+            3 -> 0
+            */
+            finders[0] = 3 - orientation;
+        } else {
+            /*
+            0 -> 1
+            1 -> 0
+            2 -> 3
+            3 -> 2
+            */
+            finders[0] = 2 * (orientation / 2) + (orientation + 1) % 2;
+        }
+
+        if (y_pos < 3) {
+            /*
+            0 -> 0
+            1 -> 3
+            2 -> 2
+            3 -> 1
+            */
+            finders[1] = (orientation + 2 * (orientation % 2)) % 4;
+        } else {
+            /*
+            0 -> 2
+            1 -> 1
+            2 -> 0
+            3 -> 3
+            */
+            finders[1] = (orientation + 2 * ((orientation + 1) % 2)) % 4;
+        }
+
+        Serial.println(
+            "\nx_pos: " + String(x_pos) + 
+            "\ny_pos: " + String(y_pos) + 
+            "\norientation: " + String(orientation)
+        );
+
+        Serial.println(
+            "\ntrigger0: " + String(triggers[0]) +
+            "\ntrigger1: " + String(triggers[1]) +
+            "\nfinders0: " + String(finders[0]) +
+            "\nfinders1: " + String(finders[1])
+        );
+
+        return true;
+    }
+
+    void do_relocalize() {
+        const uint8_t DIFF_SIZE = 1;
+        const uint8_t DELAY_CHECK = 20;
+        static uint8_t readingData = 0;
+        static bool initialized = false;
+        /* TRIGGER NOTES with diff size 3: 
+            don't use this: 18 - best for lidar that are 2 tiles away from the wall this was with 45 DELAY_CHECK'
+            10 - best for lidar that are 2 tiles away from the wall this was with 25 DELAY_CHECK
+            5 - best for lidar that is 1 tile away from from the wall with 25 DELAY_CHECK
+            try -15 for 0 tiles away
+        */
+        static int8_t index = 0;
+        // static uint8_t delay_stop = 0;
+
+        static int16_t diffs[DIFF_SIZE][NUM_FINDERS];
+        static uint16_t prev_value[NUM_FINDERS];
+        static int16_t sum[NUM_FINDERS];
+        static int16_t prev_sum[NUM_FINDERS];
+        static bool finder_triggered[NUM_FINDERS];
+
+        if (!initialized) {
+            if (init_relocalize()) {
+                initialized = true;
+                relocalized = false;
+                finder_triggered[0] = false;
+                finder_triggered[1] = false;
+                readingData = 0;
+                index = 0;
+            } else
+                return;
+        }
+
+        if (readingData == 0) {
+            readingData++;
+        } else if (readingData > 0) {
+            diffs[index][0] = rangefinders[finders[0]].readings_.last() - prev_value[0];
+            diffs[index][1] = rangefinders[finders[1]].readings_.last() - prev_value[1];
+
+            sum[0] = 0;
+            sum[1] = 0;
+            for(size_t i = 0; i < DIFF_SIZE; i++) {
+                sum[0] += diffs[i][0];
+                sum[1] += diffs[i][1];
+            }
+
+            if (sum[0] > -triggers[0] && prev_sum[0] <= -triggers[0])
+                finder_triggered[0] = true;
+            if (sum[1] > -triggers[1] && prev_sum[1] <= -triggers[1])
+                finder_triggered[1] = true;
+
+            if (readingData == DELAY_CHECK && (
+                finder_triggered[0] && finder_triggered[1]
+            )) {
+                relocalized = true;
+            }
+            /*
+            PLOTTER_SERIAL.println(
+                String(readingData * 5) + "," + 
+                String(rangefinders[finders[0]].last_reading) + "," + 
+                String(prev_value[0]) + "," + 
+                String(diffs[index][0]) + ", " +
+                String(sum[0]) + ", " +
+                String(rangefinders[finders[1]].last_reading + 2000) + "," + 
+                String(prev_value[1] + 2000) + "," + 
+                String(diffs[index][1] + 2000) + ", " +
+                String(sum[1] + 2000) + ", "
+            );
+            */
+
+            index = (index + 1) % DIFF_SIZE;
+            prev_sum[0] = sum[0];
+            prev_sum[1] = sum[1];
+            if (readingData < DELAY_CHECK)
+                readingData++;
+        }
+        prev_value[0] = rangefinders[finders[0]].readings_.last();
+        prev_value[1] = rangefinders[finders[1]].readings_.last();
     }
 
     void do_candle_homing() {

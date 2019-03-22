@@ -224,8 +224,10 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         if (prev_terrain != Terrain::WATER) {
             // add a forward move to the path
             plan[plan_steps++] = 0;
+            path.push(Move{Move_t::FORWARD, 30});
         } else {
             plan[plan_steps++] = 2;
+            path.push(Move{Move_t::MOVE_ONTO_WATER, 30}); // get actual distance to move one tile
         }
 
         // if the bot has changed orientation since the last tile
@@ -239,7 +241,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 plan[plan_steps++] = -1;
             }
             else { // the parent tile points back at the current tile
-if (x == bot_x && y == bot_y) {
+				if (x == bot_x && y == bot_y) {
 					plan[plan_steps++] = 1;
 					plan[plan_steps++] = 1;
 				} else {

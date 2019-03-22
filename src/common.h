@@ -28,7 +28,7 @@
 #define RUN_LOGGING
 #define RUN_LIDARS
 //#define RUN_IMU
-#define STOP_ON_MAGNET
+//#define STOP_ON_MAGNET
 //#define LOG_MOTOR_CONTROL
 //#define LOG_OBJECT_DETECTION
 

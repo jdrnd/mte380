@@ -43,6 +43,8 @@ void Rangefinder<SensorType>::logLastData() {
     DEBUG_PRINT(last_reading);
 }
 
+
+
 // Initializes each range finder by placing them in standby (XSHUT LOW), then 
 // enabling each in turn and setting a unique address
 void Rangefinders::init() {
@@ -131,4 +133,15 @@ void Rangefinders::logReadings() {
     DEBUG_PRINT(',');
     DEBUG_PRINT(shortrange.read());
     DEBUG_PRINT('\n');
+}
+
+Rangefinder<VL53L1X>& Rangefinders::operator[](uint8_t i) {
+    if (i == 0)
+        return right;
+    if (i == 1)
+        return front;
+    if (i == 2)
+        return left;
+    if (i == 3)
+        return back;
 }
