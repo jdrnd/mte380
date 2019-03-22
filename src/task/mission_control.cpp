@@ -124,8 +124,7 @@ namespace MissionControl {
             if (approaching) approaching = false;
         }
 
-        DEBUG_PRINT("approaching: " + String(approaching) + 
-            " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight));
+        DEBUG_PRINT("approaching: " + String(approaching) + " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight));
         if(!candleFound && flameDetectedLeft && flameDetectedRight && !approaching) {
             MotorControl::stopMotors();
             MotorControl::command_queue.clear();
@@ -251,8 +250,6 @@ namespace MissionControl {
 
         if (!done_init) {
             MotorControl::send_command(Command_t::DRIVE, 60);
-            MotorControl::send_command(Command_t::TURN, 90);
-            MotorControl::send_command(Command_t::DRIVE, 30);
             done_init = true;
         }
     }

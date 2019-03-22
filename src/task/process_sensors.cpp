@@ -57,4 +57,6 @@ void print_object_data()
             Serial.println(confidence[i][5]);
             
     }
+    Serial.println(".");
+    Serial.println(".");
 }

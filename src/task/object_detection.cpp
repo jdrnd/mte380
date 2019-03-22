@@ -68,8 +68,10 @@ void localize(){
 				}
 				else if(der_r > THRESHOLD && obj_r)
 				{
-					uint8_t i = find_lowest_reading_index(LidarSensor::LIDAR_RIGHT, 10);
-					locate_coord_lin(LIDAR_RIGHT, rangefinders.left.readings_[l_size-1-i], Xreadings[Xreadings.size()-2-i], Yreadings[Yreadings.size()-2-i]);
+					uint8_t i = find_lowest_reading_index(LidarSensor::LIDAR_RIGHT, 20);
+						if(rangefinders.right.readings_[r_size-1-i] < RIGHT_LIDAR_MAX){
+							locate_coord_lin(LIDAR_RIGHT, rangefinders.left.readings_[l_size-1-i], Xreadings[Xreadings.size()-1-i], Yreadings[Yreadings.size()-1-i]);
+						}
 					wait_after_object_r = true;
 				}				
 			}
@@ -82,8 +84,10 @@ void localize(){
 				}
 				else if(der_l > THRESHOLD && obj_l)
 				{
-					uint8_t i = find_lowest_reading_index(LidarSensor::LIDAR_LEFT, 10);
-					locate_coord_lin(LIDAR_LEFT, rangefinders.left.readings_[l_size-1-i], Xreadings[Xreadings.size()-2-i], Yreadings[Yreadings.size()-2-i]);
+					uint8_t i = find_lowest_reading_index(LidarSensor::LIDAR_LEFT, 20);
+					if(rangefinders.left.readings_[l_size-1-i] < LEFT_LIDAR_MAX){
+						locate_coord_lin(LIDAR_LEFT, rangefinders.left.readings_[l_size-1-i], Xreadings[Xreadings.size()-1-i], Yreadings[Yreadings.size()-1-i]);
+					}
 					wait_after_object_l = true;
 				}				
 			}
@@ -133,7 +137,7 @@ void localize(){
 			if(obj_l)
 			{
 				cnt_calc_delay_l++;
-				if(cnt_calc_delay_l == OBJ_CALC_DELAY)
+				if(cnt_calc_delay_l == OBJ_CALC_DELAY && rangefinders.left.last_reading < LEFT_LIDAR_MAX)
 				{
 					locate_coord_lin(LidarSensor::LIDAR_LEFT, rangefinders.left.last_reading, X, Y);
 				}
@@ -141,7 +145,7 @@ void localize(){
 			if(obj_r)
 			{
 				cnt_calc_delay_r++;
-				if(cnt_calc_delay_r == OBJ_CALC_DELAY)
+				if(cnt_calc_delay_r == OBJ_CALC_DELAY && rangefinders.right.last_reading < RIGHT_LIDAR_MAX)
 				{
 					locate_coord_lin(LidarSensor::LIDAR_RIGHT, rangefinders.right.last_reading, X, Y);
 				}
