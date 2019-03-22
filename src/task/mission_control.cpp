@@ -104,69 +104,74 @@ namespace MissionControl {
 
     void do_relocalize() {
         static uint8_t relocalizeState = 1;
-        const uint8_t DIFF_SIZE = 3;
-        const uint8_t DELAY_CHECK = 40;
-        static int16_t diffs[DIFF_SIZE];
-        static uint16_t prev_value;
         static uint8_t readingData = 0;
+        const uint8_t DIFF_SIZE = 3;
+        const uint8_t DELAY_CHECK = 45;
+        const int8_t TRIGGER = 18;
+        const int8_t NUM_FINDERS = 2;
         static int8_t index = 0;
-        static int16_t sum = 0;
-        static int16_t prev_sum = 0;
 
-        // static bool calculateSum = false;
+        static int16_t diffs[DIFF_SIZE][NUM_FINDERS];
+        static uint16_t prev_value[NUM_FINDERS];
+        static int16_t sum[NUM_FINDERS];
+        static int16_t prev_sum[NUM_FINDERS] = {0};
+        static uint8_t finders[NUM_FINDERS] = {1,2};
+        static bool finder_triggered[NUM_FINDERS] = {0};
 
         bool still = MotorControl::current_command.status == CommandStatus::DONE && MotorControl::command_queue.empty();
 
-        //PLOTTER_SERIAL.println("relocalizeState: " + String(relocalizeState));
-
         if (relocalizeState == 1 && still) {
             MotorControl::send_command(Command_t::SLOW_TURN, -180);
+            finder_triggered[0] = false;
+            finder_triggered[1] = false;
             relocalizeState++;
         } else if (relocalizeState == 2) {
             if (readingData == 0) {
                 readingData++;
             } else if (readingData > 0) {
-                
-                // if (calculateSum)
-                //     sum -= diffs[index];
-                diffs[index] = rangefinders.front.readings_.last() - prev_value;
-                // if (calculateSum)
-                //     sum += diffs[index];
+                diffs[index][0] = rangefinders[finders[0]].readings_.last() - prev_value[0];
+                diffs[index][1] = rangefinders[finders[1]].readings_.last() - prev_value[1];
 
-                sum = 0;
+                sum[0] = 0;
+                sum[1] = 0;
                 for(size_t i = 0; i < DIFF_SIZE; i++) {
-                    sum += diffs[i];
+                    sum[0] += diffs[i][0];
+                    sum[1] += diffs[i][1];
                 }
-                
-                const int8_t trigger = 18;//rangefinders.front.readings_.last() / 4;
+
+                if (sum[0] > -TRIGGER && prev_sum[0] <= -TRIGGER)
+                    finder_triggered[0] = true;
+                if (sum[1] > -TRIGGER && prev_sum[1] <= -TRIGGER)
+                    finder_triggered[1] = true;
+
                 if (readingData == DELAY_CHECK && (
-                    (sum > -trigger && prev_sum <= -trigger)
-                //  || (sum <= -trigger && prev_sum > trigger)
+                    finder_triggered[0] && finder_triggered[1]
                 )) {
-                    //MotorControl::stopMotors();
                     Motors::stop();
                     MotorControl::current_command.status = CommandStatus::DONE;
                     relocalizeState++;
                 }
-                /*
+
                 PLOTTER_SERIAL.println(
-                    String(readingData) + "," + 
-                    String(rangefinders.front.last_reading) + "," + 
-                    String(prev_value) + "," + 
-                    String(diffs[index]) + ", " +
-                    String(sum) + ", " + 
-                    String(relocalizeState * 50) + ","
+                    String(readingData * 5) + "," + 
+                    String(rangefinders[finders[0]].last_reading) + "," + 
+                    String(prev_value[0]) + "," + 
+                    String(diffs[index][0]) + ", " +
+                    String(sum[0]) + ", " +
+                    String(rangefinders[finders[1]].last_reading + 2000) + "," + 
+                    String(prev_value[1] + 2000) + "," + 
+                    String(diffs[index][1] + 2000) + ", " +
+                    String(sum[1] + 2000) + ", "
                 );
-                */
 
                 index = (index + 1) % DIFF_SIZE;
-                // if (index == 0)
-                //     calculateSum = true;
-                prev_sum = sum;
+                prev_sum[0] = sum[0];
+                prev_sum[1] = sum[1];
                 if (readingData < DELAY_CHECK)
                     readingData++;
             }
-            prev_value = rangefinders.front.readings_.last();
+            prev_value[0] = rangefinders[finders[0]].readings_.last();
+            prev_value[1] = rangefinders[finders[1]].readings_.last();
         }
     }
 
