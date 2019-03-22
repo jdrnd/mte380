@@ -16,7 +16,7 @@ const Position scan_positions[NUM_SCAN_POSITIONS] = {
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::OBJECT_SEARCH;
+    State_t state = State_t::RELOCALIZE;
     static uint64_t count = 0;
 
     bool magnet_found = false;
@@ -61,6 +61,9 @@ namespace MissionControl {
 
     void run() {
         switch(state) {
+            case State_t::RELOCALIZE:
+                do_relocalize();
+                break;
             case State_t::CANDLE_HOMING:
                 do_candle_homing();
                 break;
@@ -97,6 +100,74 @@ namespace MissionControl {
         //     MotorControl::command_queue.clear();
         //     MotorControl::send_command(Command_t::TURN, 90);
         // }
+    }
+
+    void do_relocalize() {
+        static uint8_t relocalizeState = 1;
+        const uint8_t DIFF_SIZE = 3;
+        const uint8_t DELAY_CHECK = 40;
+        static int16_t diffs[DIFF_SIZE];
+        static uint16_t prev_value;
+        static uint8_t readingData = 0;
+        static int8_t index = 0;
+        static int16_t sum = 0;
+        static int16_t prev_sum = 0;
+
+        // static bool calculateSum = false;
+
+        bool still = MotorControl::current_command.status == CommandStatus::DONE && MotorControl::command_queue.empty();
+
+        //PLOTTER_SERIAL.println("relocalizeState: " + String(relocalizeState));
+
+        if (relocalizeState == 1 && still) {
+            MotorControl::send_command(Command_t::SLOW_TURN, -180);
+            relocalizeState++;
+        } else if (relocalizeState == 2) {
+            if (readingData == 0) {
+                readingData++;
+            } else if (readingData > 0) {
+                
+                // if (calculateSum)
+                //     sum -= diffs[index];
+                diffs[index] = rangefinders.front.readings_.last() - prev_value;
+                // if (calculateSum)
+                //     sum += diffs[index];
+
+                sum = 0;
+                for(size_t i = 0; i < DIFF_SIZE; i++) {
+                    sum += diffs[i];
+                }
+                
+                const int8_t trigger = 18;//rangefinders.front.readings_.last() / 4;
+                if (readingData == DELAY_CHECK && (
+                    (sum > -trigger && prev_sum <= -trigger)
+                //  || (sum <= -trigger && prev_sum > trigger)
+                )) {
+                    //MotorControl::stopMotors();
+                    Motors::stop();
+                    MotorControl::current_command.status = CommandStatus::DONE;
+                    relocalizeState++;
+                }
+                /*
+                PLOTTER_SERIAL.println(
+                    String(readingData) + "," + 
+                    String(rangefinders.front.last_reading) + "," + 
+                    String(prev_value) + "," + 
+                    String(diffs[index]) + ", " +
+                    String(sum) + ", " + 
+                    String(relocalizeState * 50) + ","
+                );
+                */
+
+                index = (index + 1) % DIFF_SIZE;
+                // if (index == 0)
+                //     calculateSum = true;
+                prev_sum = sum;
+                if (readingData < DELAY_CHECK)
+                    readingData++;
+            }
+            prev_value = rangefinders.front.readings_.last();
+        }
     }
 
     void do_candle_homing() {

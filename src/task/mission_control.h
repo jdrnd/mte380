@@ -57,7 +57,8 @@ namespace MissionControl {
         FIND_MAGNET,
         CANDLE_SEARCH,
         OBJECT_SEARCH,
-        CANDLE_HOMING = 25
+        CANDLE_HOMING = 25,
+        RELOCALIZE
     };
 
     extern State_t state;
@@ -72,6 +73,7 @@ namespace MissionControl {
     void do_test_move();
     void do_object_search();
 
+    void do_relocalize();
 
     void update_position(int16_t);
     void get_front_square(uint8_t, uint8_t, int8_t, uint8_t&, uint8_t&);

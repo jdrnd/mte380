@@ -28,6 +28,7 @@ extern uint16_t correction;
 enum class Command_t: uint8_t {
     DRIVE,
     TURN,
+    SLOW_TURN,
     STOP,
     NONE
 };

@@ -148,6 +148,44 @@ void run_drive_command() {
     */
 }
 
+void run_slow_turn_command() {
+    if (current_command.status == CommandStatus::DONE) return;
+
+    int16_t command_value = current_command.value;
+
+    // 1 is right, -1 is left
+    int8_t direction = (current_command.value > 0) ? 1 : -1;
+    if (current_command.status == CommandStatus::WAITING) {
+        motors.stop();
+        
+        motors.left->resetDistance();
+        motors.right->resetDistance();
+
+        #ifdef RUN_IMU
+        imu->init();
+        imu->zero_yaw();
+        #endif
+        
+        // negative direction is right, positive direction in left
+        motors.left->setSpeed(direction*-MOTOR_TURN_SPEED / 2);
+        motors.right->setSpeed(direction*+MOTOR_TURN_SPEED / 2);
+        current_command.status = CommandStatus::RUNNING;
+    }
+
+    if (abs(motors.left->distance) > abs((command_value/90.0)*MOTOR_DISTANCE_90_DEG) && abs(motors.right->distance) > abs((command_value/90.0)*MOTOR_DISTANCE_90_DEG)) {
+        DEBUG_PRINT("Done Turn");
+        motors.stop();
+        
+        motors.left->resetDistance();
+        motors.right->resetDistance();
+
+        current_command.status = CommandStatus::DONE;
+        DEBUG_PRINT("Current Orientation")
+        DEBUG_PRINT(MissionControl::orientation);
+    }
+}
+
+
 void run_turn_command() {
     if (current_command.status == CommandStatus::DONE) return;
 
@@ -243,6 +281,9 @@ void run_current_command() {
             break;
         case Command_t::TURN:
             run_turn_command();
+            break;
+        case Command_t::SLOW_TURN:
+            run_slow_turn_command();
             break;
         case Command_t::STOP:
             run_stop_command();

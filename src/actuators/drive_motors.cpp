@@ -95,9 +95,11 @@ void Motor::adjustSpeed() {
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.println(Motors::right->speed_command);
     */
+    /*
     PLOTTER_SERIAL.print(Motors::left->distance);
     PLOTTER_SERIAL.print(",");
     PLOTTER_SERIAL.println(Motors::right->distance);
+    */
     #endif
 
     // Vary speed_command until speed is close to speed_setpoint
