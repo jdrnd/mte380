@@ -65,6 +65,11 @@ void run_drive_command() {
     static bool run_ramp[5] = {true, true, true, true, true};
     static int16_t speed_command = 0;
 
+    static int16_t num_squares_moved = 0;
+    
+    int16_t num_squares_to_move = abs(current_command.value/30);
+    uint16_t command_value = current_command.value;
+
     if (run_init) {
         motors.stop();
         motors.left->resetDistance();
@@ -79,8 +84,7 @@ void run_drive_command() {
     double rightD = motors.right->getDistance();
     int8_t direction = (current_command.value > 0) ? 1 : -1;
 
-    uint16_t command_value = current_command.value;
-
+    
     #ifdef NO_MOTOR_RAMP
     motors.setSpeed(50, correction);
     #else
@@ -106,20 +110,33 @@ void run_drive_command() {
     }
     #endif
 
+
+    int16_t average_distance = abs((leftD+rightD)/2);
+    int16_t command_mag = abs(command_value);
+
+    // Every time we move a square worth of distance update our position
+    if (average_distance >= ((command_mag*(double)num_squares_moved+1)/(double)num_squares_to_move) && num_squares_moved < num_squares_to_move - 1) {
+        MissionControl::update_position(30);
+        num_squares_moved++;
+    }
+
     // End, reset
-    if (abs(leftD) > abs(command_value) || abs(rightD) > abs(command_value)) {
+    if (average_distance > command_mag) {
+        MissionControl::update_position(30);
         DEBUG_PRINT("Done drive section");
         motors.stop();
         motors.left->resetDistance();
         motors.right->resetDistance();
 
-        MissionControl::update_position(command_value);
+        //MissionControl::update_position(command_value);
 
         run_init = true;
         stopOnWater = false;
         memset(run_ramp,true,sizeof(bool)*5);
         speed_command = 0;
         delay_num = 0;
+        num_squares_moved = 0;
+        num_squares_to_move = 0;
         current_command.status = CommandStatus::DONE;
     }
 
