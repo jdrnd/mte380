@@ -179,9 +179,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         DEBUG_PRINT("count: " + String(count) + " at: (" + String(x) + ", " 
             + String(y) + ")");
         printMapParents();
-        //printMapFCosts();
-        DEBUG_PRINT();
-        
+        //printMapFCosts();        
     }
     
     if (!planned) {

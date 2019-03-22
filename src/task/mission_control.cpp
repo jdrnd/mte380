@@ -21,7 +21,7 @@ static uint8_t finders[NUM_FINDERS];
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::RELOCALIZE;
+    State_t state = STARTING_STATE;
     static uint64_t count = 0;
 
     bool magnet_found = false;
@@ -71,9 +71,6 @@ namespace MissionControl {
 
     void run() {
         switch(state) {
-            case State_t::CANDLE_HOMING:
-                do_candle_homing();
-                break;
             case State_t::CANDLE_SEARCH:
                 do_candle_search();
                 break;
@@ -350,6 +347,8 @@ namespace MissionControl {
         if (curr_scan_position >= NUM_SCAN_POSITIONS) return;
 
         if (flameDetected) {
+            init_damper();
+            raise_damper();
             pinMode(FAN_CONTROL_PIN, OUTPUT);
             digitalWrite(FAN_CONTROL_PIN, HIGH);
             MotorControl::stopMotors();
@@ -382,6 +381,9 @@ namespace MissionControl {
             while (!pathfinder.path.empty()) send_next_planned_move();
             curr_scan_position++;
 
+            if (curr_scan_position == NUM_SCAN_POSITIONS) {
+                MotorControl::send_command(Command_t::TURN, 360);
+            }
         }
     }
 
@@ -481,10 +483,9 @@ namespace MissionControl {
     void do_find_magnet(){
         if (Magnetics::magnetDetected) {
             #ifdef STOP_ON_MAGNET
-            // Signal physically somehow
             magnet_found = true;
             DEBUG_PRINT("Magnet detected");
-            state = State_t::CANDLE_HOMING;
+            state = State_t::NONE;
             init_damper();
             raise_damper();
             MotorControl::stopMotors();
@@ -579,6 +580,6 @@ namespace MissionControl {
                 y_pos -= num_tiles;
                 break;
         }
-        PLOTTER_SERIAL.println("New position " + String(x_pos) + "," + String(y_pos));
+        DEBUG_PRINT("New position " + String(x_pos) + "," + String(y_pos));
     }
 };
