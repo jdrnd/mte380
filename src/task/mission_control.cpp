@@ -16,7 +16,7 @@ const Position scan_positions[NUM_SCAN_POSITIONS] = {
 namespace MissionControl {
     // this task = t_missionControl
 
-    State_t state = State_t::FIND_MAGNET;
+    State_t state = State_t::TEST_MOVE;
     static uint64_t count = 0;
 
     bool magnet_found = false;
@@ -124,8 +124,7 @@ namespace MissionControl {
             if (approaching) approaching = false;
         }
 
-        DEBUG_PRINT("approaching: " + String(approaching) + 
-            " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight));
+        DEBUG_PRINT("approaching: " + String(approaching) + " L: " + String(flameDetectedLeft) + " R: " + String(flameDetectedRight));
         if(!candleFound && flameDetectedLeft && flameDetectedRight && !approaching) {
             MotorControl::stopMotors();
             MotorControl::command_queue.clear();
@@ -246,12 +245,22 @@ namespace MissionControl {
         }
     }
 
+    void do_test_move() {
+        static bool done_init = false;
+
+        if (!done_init) {
+            MotorControl::send_command(Command_t::DRIVE, 60);
+            done_init = true;
+        }
+    }
+
     void do_find_magnet(){
         if (Magnetics::magnetDetected) {
             #ifdef STOP_ON_MAGNET
             // Signal physically somehow
             magnet_found = true;
             DEBUG_PRINT("Magnet detected");
+<<<<<<< HEAD
             state = State_t::CANDLE_HOMING;
             init_damper();
             raise_damper();
@@ -260,6 +269,15 @@ namespace MissionControl {
             count = 0;
             return;
             #endif
+=======
+            // state = State_t::CANDLE_HOMING;
+            // init_damper();
+            // raise_damper();
+            // MotorControl::stopMotors();
+            // MotorControl::command_queue.clear();
+            // count = 0;
+            // return;
+>>>>>>> working on wall following
         }
 
         static uint8_t curr_sand_pit = 0;

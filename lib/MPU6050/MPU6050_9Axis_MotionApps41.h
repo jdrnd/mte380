@@ -390,7 +390,7 @@ uint8_t MPU6050::dmpInitialize() {
     I2Cdev::writeByte(devAddr, MPU6050_RA_INT_PIN_CFG, 0x32);
 
     // enable MPU AUX I2C bypass mode
-    //DEBUG_PRINTLN(F("Enabling AUX I2C bypass mode..."));
+    DEBUG_PRINTLN(F("Enabling AUX I2C bypass mode..."));
     //setI2CBypassEnabled(true);
 
     DEBUG_PRINTLN(F("Setting magnetometer mode to power-down..."));
@@ -465,7 +465,7 @@ uint8_t MPU6050::dmpInitialize() {
             setYGyroOffsetTC(ygOffset);
             setZGyroOffsetTC(zgOffset);
 
-            //DEBUG_PRINTLN(F("Setting X/Y/Z gyro user offsets to zero..."));
+            DEBUG_PRINTLN(F("Setting X/Y/Z gyro user offsets to zero..."));
             //setXGyroOffset(0);
             //setYGyroOffset(0);
             //setZGyroOffset(0);

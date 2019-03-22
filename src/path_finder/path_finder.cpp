@@ -91,10 +91,8 @@ bool PathFinder::planPath(int8_t unknown_cost) {
     uint8_t y = bot_y;
     uint16_t count = 0; // number of steps the algorithm has taken
     
-    DEBUG_PRINT("Planning from position: (" + String(bot_x) 
-        + "," + String(bot_y) + ")");
-    DEBUG_PRINT("Planning to Target: (" + String(target_x) + ", " 
-        + String(target_y) + ")");
+    DEBUG_PRINT("Planning from position: (" + String(bot_x) + "," + String(bot_y) + ")");
+    DEBUG_PRINT("Planning to Target: (" + String(target_x) + ", " + String(target_y) + ")");
 
     // evaluate the starting tile
     map[y][x].inOpen = true;
@@ -220,15 +218,21 @@ bool PathFinder::planPath(int8_t unknown_cost) {
         y+= Y_DIR[prev_parent];
         // make sure the new tile is in the map
         if (x < 0 || x >= TILE_COLS || y < 0 || y >= TILE_ROWS) {
-            DEBUG_PRINT("Error while creating plan, out of bounds at step: " 
-                    + String(plan_steps));
+            DEBUG_PRINT("Error while creating plan, out of bounds at step: " + String(plan_steps));
             return false;
         }
         if (prev_terrain != Terrain::WATER) {
             // add a forward move to the path
             plan[plan_steps++] = 0;
+<<<<<<< HEAD
         } else {
             plan[plan_steps++] = 2;
+=======
+            path.push(Move{Move_t::FORWARD, 30});
+        } else {
+            plan[plan_steps++] = 2;
+            path.push(Move{Move_t::MOVE_ONTO_WATER, 30}); // get actual distance to move one tile
+>>>>>>> working on wall following
         }
 
         // if the bot has changed orientation since the last tile
@@ -242,6 +246,7 @@ bool PathFinder::planPath(int8_t unknown_cost) {
                 plan[plan_steps++] = -1;
             }
             else { // the parent tile points back at the current tile
+<<<<<<< HEAD
 				if (x == bot_x && y == bot_y) {
 					plan[plan_steps++] = 1;
 					plan[plan_steps++] = 1;
@@ -250,6 +255,10 @@ bool PathFinder::planPath(int8_t unknown_cost) {
 						+ String(plan_steps));
 					return false;
 				}
+=======
+                DEBUG_PRINT("Error while creating plan, repeat tile at step: " + String(plan_steps));
+                return false;
+>>>>>>> object detection
             }
         }
     }
