@@ -260,7 +260,6 @@ namespace MissionControl {
             // Signal physically somehow
             magnet_found = true;
             DEBUG_PRINT("Magnet detected");
-<<<<<<< HEAD
             state = State_t::CANDLE_HOMING;
             init_damper();
             raise_damper();
@@ -269,15 +268,6 @@ namespace MissionControl {
             count = 0;
             return;
             #endif
-=======
-            // state = State_t::CANDLE_HOMING;
-            // init_damper();
-            // raise_damper();
-            // MotorControl::stopMotors();
-            // MotorControl::command_queue.clear();
-            // count = 0;
-            // return;
->>>>>>> working on wall following
         }
 
         static uint8_t curr_sand_pit = 0;

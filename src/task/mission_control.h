@@ -42,9 +42,12 @@ extern const Position scan_positions[NUM_SCAN_POSITIONS];
 
 namespace MissionControl {
     extern bool magnet_found;
-    extern int8_t orientation;
     extern Terrain map[6][6];
     extern PathFinder pathfinder;
+
+    extern uint8_t x_pos;
+    extern uint8_t y_pos;
+    extern int8_t orientation;
 
     enum class State_t: uint8_t {
         NONE = 0,

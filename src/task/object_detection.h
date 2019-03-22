@@ -49,6 +49,12 @@ enum LidarSensor : uint8_t
         LIDAR_RIGHT                               = 3,
     };
 
+struct Point{
+    int8_t x;
+    int8_t y;
+    uint16_t confidence;
+}
+
 extern Task t_localize;
 
 extern Rangefinders rangefinders;
