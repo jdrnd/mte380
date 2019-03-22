@@ -13,9 +13,12 @@
     Configuration values for each run
 */
 
-#define STARTING_X_POS 3
-#define STARTING_Y_POS 0
-#define STARTING_ORIENTATION 1 // along y-axis, towards center
+// State_t::OBJECT_SEARCH, State_t::FIND_MAGNET, State_t::CANDLE_SEARCH
+#define STARTING_STATE State_t::OBJECT_SEARCH
+#define STARTING_X_POS 5
+#define STARTING_Y_POS 3
+
+#define STARTING_ORIENTATION 2// along y-axis, towards center
 
 
 /*

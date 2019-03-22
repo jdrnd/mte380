@@ -72,7 +72,6 @@ namespace MissionControl {
     void init();
     void run();
 
-    void do_candle_homing();
     void do_move_path();
     void do_find_magnet();
     void do_candle_search();
