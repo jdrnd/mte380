@@ -41,7 +41,7 @@ enum class CommandStatus: uint8_t {
 
 namespace MotorControl {
 
-    const int DELAY_COUNT = 30;
+    const int DELAY_COUNT = 10;
 
 
 

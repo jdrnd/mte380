@@ -20,11 +20,15 @@
 
 #include "task/object_detection.h"
 
+#include "motor_control.h"
+
 extern ColorSensor colorsensor;
 extern bool flameDetected;
 extern Rangefinders rangefinders;
 
 extern Task t_missionControl;
+
+#define min(a,b) ((a)<(b)?(a):(b))
 
 #define NUM_SCAN_POSITIONS 4
 #define NUM_SAND_POSITIONS 3
@@ -42,6 +46,8 @@ extern const Position scan_positions[NUM_SCAN_POSITIONS];
 
 namespace MissionControl {
     extern bool magnet_found;
+    extern int8_t orientation;
+    extern bool relocalized;
     extern Terrain map[6][6];
     extern PathFinder pathfinder;
 
@@ -73,6 +79,7 @@ namespace MissionControl {
     void do_test_move();
     void do_object_search();
 
+    bool init_relocalize();
     void do_relocalize();
 
     void update_position(int16_t);

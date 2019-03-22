@@ -51,11 +51,6 @@ void detectMagnet() {
                 return;
             }
         }
-        if (i==0) {
-            #ifdef STOP_ON_MAGNET
-            PLOTTER_SERIAL.println(String(sensor_reading) + "," + String(sensor_avg));
-            #endif
-        }
     }
 }
 

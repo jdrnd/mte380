@@ -9,7 +9,7 @@ Command current_command;
 
 bool stopOnWater=false;
 
-static uint8_t delay_num = 0;
+static uint8_t delay_num = 9999;
 
 int8_t correction = 0;
 
@@ -172,8 +172,10 @@ void run_slow_turn_command() {
         current_command.status = CommandStatus::RUNNING;
     }
 
-    if (abs(motors.left->distance) > abs((command_value/90.0)*MOTOR_DISTANCE_90_DEG) && abs(motors.right->distance) > abs((command_value/90.0)*MOTOR_DISTANCE_90_DEG)) {
+    if (MissionControl::relocalized || 
+        abs(motors.left->distance) > abs((command_value/90.0)*MOTOR_DISTANCE_90_DEG) && abs(motors.right->distance) > abs((command_value/90.0)*MOTOR_DISTANCE_90_DEG)) {
         DEBUG_PRINT("Done Turn");
+        
         motors.stop();
         
         motors.left->resetDistance();
@@ -182,6 +184,11 @@ void run_slow_turn_command() {
         current_command.status = CommandStatus::DONE;
         DEBUG_PRINT("Current Orientation")
         DEBUG_PRINT(MissionControl::orientation);
+
+        if (!MissionControl::relocalized) {
+            DEBUG_PRINT("COULD NOT RELOCALIZE");
+            PLOTTER_SERIAL.println("COULD NOT RELOCALIZE");
+        }
     }
 }
 
@@ -295,7 +302,7 @@ void run_current_command() {
 void motor_control() {
     //DEBUG_PRINT("Motor control");
     
-    static int count = 0;
+    static int count = 999;
     // DEBUG_PRINT(motors.left->ticks_) 
     // DEBUG_PRINT(motors.left->distance)
     // DEBUG_PRINT(motors.right->ticks_)
