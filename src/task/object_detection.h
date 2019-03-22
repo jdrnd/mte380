@@ -42,18 +42,18 @@
 
 //used to calculate direction of object
 enum LidarSensor : uint8_t
-    {
-        LIDAR_FRONT                               = 0,
-        LIDAR_LEFT                                = 1,
-        LIDAR_BACK                                = 2,
-        LIDAR_RIGHT                               = 3,
-    };
+{
+    LIDAR_FRONT                               = 0,
+    LIDAR_LEFT                                = 1,
+    LIDAR_BACK                                = 2,
+    LIDAR_RIGHT                               = 3,
+};
 
-struct Point{
+struct Point {
     int8_t x;
     int8_t y;
     uint16_t confidence;
-}
+};
 
 extern Task t_localize;
 

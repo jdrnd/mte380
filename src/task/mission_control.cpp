@@ -245,15 +245,6 @@ namespace MissionControl {
         }
     }
 
-    void do_test_move() {
-        static bool done_init = false;
-
-        if (!done_init) {
-            MotorControl::send_command(Command_t::DRIVE, 60);
-            done_init = true;
-        }
-    }
-
     void do_find_magnet(){
         if (Magnetics::magnetDetected) {
             #ifdef STOP_ON_MAGNET
