@@ -1,12 +1,21 @@
 #include "object_detection.h"
-#include "CircularBuffer.h"
-#include <Arduino.h>
 
+
+namespace ObjectDetection {
 //STUFF for localizaiton
 bool objects[6][6] = {0};
 int16_t confidence[6][6] = {0};
+//three most likely points for objects
+Point points[2] = {{0,0,0},{0,0,0}};
 uint16_t X = 0;
 uint16_t Y = 0;
+
+uint16_t exp_range[6][2] = {{1830,1325},    //0
+							{1375,1025},    //1
+							{1100,725},    //2
+							{775,425},    //3
+							{475,125},    //4
+							{0,175}};   //5
 
 int16_t der_r = 0;
 int16_t der_l = 0;
@@ -124,7 +133,7 @@ void localize(){
 				cnt_after_object_r++;
 				if(cnt_after_object_r == WAIT_AFTER_OBJECT)
 				{
-					//setting obj_l allows the coord to be updated again
+					//setting obj_r allows the coord to be updated again
 					obj_r = false;
 					use_prev_data_r = false;
 					cnt_latest_data_use_r = 0;
@@ -152,18 +161,66 @@ void localize(){
 
 			}
 
+			//object detetion for the front and back sensor
+
+
 	
 
 			//**LOCALIZE the current X,Y value**
 			//check the reliability of each sensor
-
-			if(rangefinders.front.last_reading < FRONT_LIDAR_MAX)
-			{
-				rel_f = true;
-			}
 			if(rangefinders.back.last_reading < BACK_LIDAR_MAX)
 			{
-				rel_b = true;
+				// if( (MissionControl::orientation == 0 &&
+				// 	rangefinders.back.last_reading < exp_range[5-MissionControl::x_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[5-MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 2 &&
+				// 	rangefinders.back.last_reading < exp_range[MissionControl::x_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 1 &&
+				// 	rangefindCers.back.last_reading < exp_range[5-MissionControl::y_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[5-MissionControl::y_pos][1]) ||
+				// 	(MissionControl::orientation == 3 &&
+				// 	rangefinders.back.last_reading < exp_range[MissionControl::y_pos][0] && 
+				// 	rangefinders.back.last_reading > exp_range[MissionControl::y_pos][1]) )
+				// {
+				//rel_b = true;
+				// }
+				// else
+				// {
+				// 	//place the object front or behind.
+				// }
+				if(!are_we_blocked(LIDAR_BACK))
+				{
+					rel_b = true;
+				}
+				
+			}
+			if(rangefinders.front.last_reading < FRONT_LIDAR_MAX)
+			{
+				// if( (MissionControl::orientation == 0 &&
+				// 	rangefinders.front.last_reading < exp_range[MissionControl::x_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 2 &&
+				// 	rangefinders.front.last_reading < exp_range[5-MissionControl::x_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[5-MissionControl::x_pos][1]) ||
+				// 	(MissionControl::orientation == 1 &&
+				// 	rangefinders.front.last_reading < exp_range[MissionControl::y_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[MissionControl::y_pos][1]) ||
+				// 	(MissionControl::orientation == 3 &&
+				// 	rangefinders.front.last_reading < exp_range[5-MissionControl::y_pos][0] && 
+				// 	rangefinders.front.last_reading > exp_range[5-MissionControl::y_pos][1]) )
+				// {
+				//rel_f = true;
+				//}
+				// else if(rel_b) // if the back lidar is reliable then front back coord is reliable, and we can place object
+				// {
+				// 	locate_coord_lin(LidarSensor::LIDAR_FRONT,rangefinders.front.last_reading,X,Y);
+				// }
+				if(!are_we_blocked(LIDAR_FRONT))
+				{
+					rel_f = true;
+				}
+				
 			}
 			if(rangefinders.left.readings_[l_size-1-LR_DELAY*use_prev_data_l] < LEFT_LIDAR_MAX && !obj_l)
 			{
@@ -219,6 +276,18 @@ void localize(){
 				}
 				
 			}
+			// else //there is an object in the way
+			// {
+			// 	if(MissionControl::orientation == 0 || MissionControl::orientation == 2)
+			// 	{
+			// 		X = MissionControl::x_pos*305+152;
+			// 	}
+			// 	else // you are facing the other way
+			// 	{
+			// 		Y = MissionControl::y_pos*305+152;
+			// 	}
+			// }
+			
 		}
 
 	}
@@ -256,31 +325,29 @@ void locate_coord_lin(LidarSensor sensor, uint16_t diff, uint16_t x, uint16_t y)
 {
 	if(MissionControl::orientation == 0)
 	{	
-		if (sensor == LIDAR_LEFT)
-			round_object_coord(x, y + diff + LEFT_LIDAR_OFFSET);
-		else 
-			round_object_coord(x, y - diff - RIGHT_LIDAR_OFFSET);
+		if (sensor == LIDAR_LEFT) round_object_coord(x, y + diff + LEFT_LIDAR_OFFSET);
+		else if (sensor == LIDAR_RIGHT) round_object_coord(x, y - diff - RIGHT_LIDAR_OFFSET);
+		else if (sensor == LIDAR_FRONT) round_object_coord(x + diff + FRONT_LIDAR_OFFSET, y);
+		//too lazy to detect objects behind us, also this seems like a lot of detections if we move straight for a long time
+		//else if (sensor == LIDAR_BACK) round_object_coord()
 	}		
 	else if(MissionControl::orientation == 1)
 	{
-		if(sensor == LIDAR_LEFT)
-			round_object_coord(x - diff - LEFT_LIDAR_OFFSET, y);
-		else 
-			round_object_coord(x + diff + RIGHT_LIDAR_OFFSET, y);
+		if(sensor == LIDAR_LEFT) round_object_coord(x - diff - LEFT_LIDAR_OFFSET, y);
+		else if (sensor == LIDAR_RIGHT) round_object_coord(x + diff + RIGHT_LIDAR_OFFSET, y);
+		else if (sensor == LIDAR_FRONT) round_object_coord(x, y + diff + FRONT_LIDAR_OFFSET);
 	}		
 	else if(MissionControl::orientation == 2)
 	{
-		if(sensor == LIDAR_LEFT)
-			round_object_coord(x, y - diff - LEFT_LIDAR_OFFSET);
-		else 
-			round_object_coord(x, y + diff + RIGHT_LIDAR_OFFSET);
+		if(sensor == LIDAR_LEFT) round_object_coord(x, y - diff - LEFT_LIDAR_OFFSET);
+		else if(sensor == LIDAR_RIGHT) round_object_coord(x, y + diff + RIGHT_LIDAR_OFFSET);
+		else if(sensor == LIDAR_FRONT) round_object_coord(x - diff - FRONT_LIDAR_OFFSET, y);
 	}
 	else if(MissionControl::orientation == 3)
 	{
-		if(sensor == LIDAR_LEFT)
-			round_object_coord(x + diff + LEFT_LIDAR_OFFSET, y);
-		else 
-			round_object_coord(x - diff - RIGHT_LIDAR_OFFSET, y);
+		if(sensor == LIDAR_LEFT) round_object_coord(x + diff + LEFT_LIDAR_OFFSET, y);
+		else if (sensor == LIDAR_RIGHT) round_object_coord(x - diff - RIGHT_LIDAR_OFFSET, y);
+		else if (sensor == LIDAR_FRONT) round_object_coord(x, y - diff - FRONT_LIDAR_OFFSET);
 	}
 }
 
@@ -326,4 +393,168 @@ uint8_t find_lowest_reading_index(LidarSensor sensor, uint8_t max)
 		
 	}
 	return min_dex;
+}
+
+void find_best_points()
+{
+	for(int8_t i = 0; i < 6; i++)
+	{
+		for(int8_t j = 0; j < 6; j++)
+		{
+			//if we think there is an object
+			if(objects[j][i])
+			{
+				uint16_t curr_conf = confidence[j][i];
+				if(curr_conf >= points[1].confidence)
+				{
+					if(curr_conf >= points[0].confidence)
+					{
+						points[1] = points[0];
+						points[0] = {i,j,curr_conf};
+
+					}
+					else
+					{
+						points[1] = {i,j,curr_conf};
+					}
+				}
+			}
+		}
+	}
+}
+
+bool are_we_blocked(LidarSensor sensor)
+{
+	if(sensor == LIDAR_FRONT)
+	{
+		if(MissionControl::orientation == 0)
+		{
+			for(uint8_t i = MissionControl::x_pos+1; i<6; i++)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 1)
+		{
+			for(uint8_t i = MissionControl::y_pos+1; i<6; i++)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 2)
+		{
+			for(int8_t i = MissionControl::x_pos-1; i>=0; i--)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 3)
+		{
+			for(int8_t i = MissionControl::y_pos-1; i>=0; i--)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{
+			return false;
+		}
+		
+
+	}
+	if(sensor == LIDAR_BACK)
+	{
+		if(MissionControl::orientation == 2)
+		{
+			for(uint8_t i = MissionControl::x_pos+1; i<6; i++)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 3)
+		{
+			for(uint8_t i = MissionControl::y_pos+1; i<6; i++)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 0)
+		{
+			for(int8_t i = MissionControl::x_pos-1; i>=0; i--)
+			{
+				if(objects[MissionControl::y_pos][i])
+				{
+					return true;
+				}
+			}
+		}
+		if(MissionControl::orientation == 1)
+		{
+			for(int8_t i = MissionControl::y_pos-1; i>=0; i--)
+			{
+				if(objects[i][MissionControl::x_pos])
+				{
+					return true;
+				}
+			}
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+}
+
+void print_object_data()
+{   
+    for(int8_t i = 5; i >= 0; i--)
+    {
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][0]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][1]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][2]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][3]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][4]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::objects[i][5]);
+            PLOTTER_SERIAL.print("       ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][0]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][1]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][2]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][3]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.print(ObjectDetection::confidence[i][4]);
+            PLOTTER_SERIAL.print(" ");
+            PLOTTER_SERIAL.println(ObjectDetection::confidence[i][5]);
+            
+    }
+    PLOTTER_SERIAL.println(".");
+    PLOTTER_SERIAL.println(".");
+}
+
 }

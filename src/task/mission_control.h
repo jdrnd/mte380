@@ -18,7 +18,7 @@
 
 #include "actuators/servos.h"
 
-#include "actuators/servos.h"
+#include "task/object_detection.h"
 
 extern ColorSensor colorsensor;
 extern bool flameDetected;
@@ -42,9 +42,12 @@ extern const Position scan_positions[NUM_SCAN_POSITIONS];
 
 namespace MissionControl {
     extern bool magnet_found;
-    extern int8_t orientation;
     extern Terrain map[6][6];
     extern PathFinder pathfinder;
+
+    extern uint8_t x_pos;
+    extern uint8_t y_pos;
+    extern int8_t orientation;
 
     enum class State_t: uint8_t {
         NONE = 0,
@@ -53,6 +56,7 @@ namespace MissionControl {
         TEST_MOVE,
         FIND_MAGNET,
         CANDLE_SEARCH,
+        OBJECT_SEARCH,
         CANDLE_HOMING = 25
     };
 
@@ -66,6 +70,7 @@ namespace MissionControl {
     void do_find_magnet();
     void do_candle_search();
     void do_test_move();
+    void do_object_search();
 
 
     void update_position(int16_t);
