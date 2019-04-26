@@ -406,7 +406,7 @@ namespace MissionControl {
         static bool return_planned = false;
 
         if (!done_init) {
-            MotorControl::send_command(Command_t::DRIVE, 150);
+            MotorControl::send_command(Command_t::DRIVE, 120);
             done_init = true;
         }
 
